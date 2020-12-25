@@ -1,8 +1,8 @@
-import React, { ChangeEvent } from 'react'
+import React, { ChangeEvent } from 'react';
 import { PCDLoader } from "three/examples/jsm/loaders/PCDLoader";
 import BasicScene from "../componentes/BasicScene";
 import Form from 'react-bootstrap/Form';
-import { Object3D } from 'three'
+import { Object3D } from 'three';
 import styles from './Main.scss';
 
 type State = { mesh?: Object3D }
@@ -30,7 +30,7 @@ export default class Main extends React.PureComponent<{}, State> {
   }
 
   onLoadError = (error: ErrorEvent) => {
-    alert('Error ao carregar nuvem de pontos :(')
+    alert('Erro ao carregar nuvem de pontos :(')
     console.log('An error occurred: ', error)
   }
 
