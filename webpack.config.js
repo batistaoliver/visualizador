@@ -10,6 +10,8 @@ module.exports = {
   devServer: {
     contentBase: './dist',
     port: 3000,
+    // disableHostCheck: true,
+    historyApiFallback: true
   },
   module: {
     rules: [
