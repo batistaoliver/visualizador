@@ -2,8 +2,8 @@ import React, { ChangeEvent } from 'react'
 import { PCDLoader } from "three/examples/jsm/loaders/PCDLoader";
 import BasicScene from "../componentes/BasicScene";
 import Form from 'react-bootstrap/Form';
-import './Main.css';
 import { Object3D } from 'three'
+import './Main.scss';
 
 type State = { mesh?: Object3D }
 
