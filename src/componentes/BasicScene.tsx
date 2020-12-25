@@ -1,14 +1,27 @@
-import React, { Component } from 'react'
+import React, { PureComponent } from 'react'
 import * as THREE from 'three'
+import { Object3D, Scene, Camera, Renderer } from 'three'
 
-export default class BasicScene extends Component {
+type Props = {
+  width: string,
+  height: string,
+  onAnimate: Function,
+  mesh: Object3D
+}
+
+export default class BasicScene extends PureComponent<Props> {
   static defaultProps = {
     width: '400px',
     height: '400px',
     onAnimate: Function.prototype,
   }
+  mount: HTMLDivElement
+  scene: Scene
+  camera: Camera
+  renderer: Renderer
+  frameId: number
 
-  constructor(props) {
+  constructor(props: Props) {
     super(props)
 
     this.start = this.start.bind(this)
