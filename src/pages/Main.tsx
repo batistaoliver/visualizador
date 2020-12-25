@@ -5,7 +5,7 @@ import Form from 'react-bootstrap/Form';
 import './Main.css';
 import { Object3D } from 'three'
 
-type State = { mesh: Object3D | null }
+type State = { mesh?: Object3D }
 
 export default class Main extends React.PureComponent<{}, State> {
   loader: PCDLoader
@@ -13,6 +13,7 @@ export default class Main extends React.PureComponent<{}, State> {
   constructor(props: {}) {
     super(props);
     this.loader = new PCDLoader();
+    this.state = {}
   }
 
   onFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
