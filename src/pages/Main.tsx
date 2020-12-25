@@ -3,7 +3,7 @@ import { PCDLoader } from "three/examples/jsm/loaders/PCDLoader";
 import BasicScene from "../componentes/BasicScene";
 import Form from 'react-bootstrap/Form';
 import { Object3D } from 'three'
-import './Main.scss';
+import styles from './Main.scss';
 
 type State = { mesh?: Object3D }
 
@@ -36,7 +36,7 @@ export default class Main extends React.PureComponent<{}, State> {
 
   render() {
     return (
-      <div className="page">
+      <div className={styles.page}>
         <Form>
           <Form.Group>
             <Form.File
