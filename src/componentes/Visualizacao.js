@@ -1,18 +1,17 @@
-import React, {Component} from 'react' 
+import React, {Component} from 'react'
 //import * as THREE from 'three';
-        
-import { PCDLoader } from '../../public/pcd-viewer/node_modules/three/build/three.module.js'
+
+// import { PCDLoader } from 'three/build/three.module.js'
 // import { TrackballControls} from 'three/examples/jsm/controls/TrackballControls.js'
 
 // import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
 
-//import { GUI } from 'three/examples/jsm/libs/dat.gui.module.js'
+// import { GUI } from 'three/examples/jsm/libs/dat.gui.module.js'
 
-//import {ColorGUIHelper, SizeGUIHelper} from '../pcd-viewer/helpers/index.js'
+// import {ColorGUIHelper, SizeGUIHelper} from '../pcd-viewer/helpers/index.js'
 
-
-export default class visualizacao extends Component{
-    componentDidMount(){
+export default class Visualizacao extends Component {
+  componentDidMount() {
 //         var fileCounter = 1
 // var center = new THREE.Vector3(0, 0, 0)
 
@@ -168,17 +167,17 @@ export default class visualizacao extends Component{
 // }
 
 // main()
-    }
-    render(){
-        return (
-            <div className="visualizacao">
-                 <div>
-                    <label for="pcdInput">Carregue uma nuvem:</label><br/>
-                        <input type="file" id="pcdInput" name="pcdInput" accept=".pcd"/>
-                </div>
-                <canvas id="c"></canvas>  
-           </div>
-        )
-        
-    }
+  }
+
+  render() {
+    return (
+      <div className="visualizacao">
+        <div>
+          <label for="pcdInput">Carregue uma nuvem:</label><br/>
+          <input type="file" id="pcdInput" name="pcdInput" accept=".pcd"/>
+        </div>
+        <canvas id="c" />
+      </div>
+    )
+  }
 }
