@@ -35,10 +35,10 @@ export default class BasicScene extends PureComponent<Props> {
 
     const scene = new THREE.Scene()
     const camera = new THREE.PerspectiveCamera(
-      75,
+      50,
       width / height,
       0.1,
-      1000
+      2000
     )
     const renderer = new THREE.WebGLRenderer({ antialias: true })
 

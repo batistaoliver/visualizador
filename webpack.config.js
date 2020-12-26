@@ -1,3 +1,4 @@
+const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
@@ -47,6 +48,10 @@ module.exports = {
     })
   ],
   resolve: {
+    alias: {
+      components: path.resolve(__dirname, "src/components/"),
+      pages: path.resolve(__dirname, "src/pages/"),
+    },
     extensions: ['.js', '.json', '.ts', '.tsx'],
   }
 };

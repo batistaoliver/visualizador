@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react'
-import BasicScene from "../../componentes/BasicScene";
+import BasicScene from "components/BasicScene";
 import * as THREE from 'three'
 import { Object3D } from 'three'
 

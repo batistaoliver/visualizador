@@ -4,10 +4,10 @@ import {
   Switch,
   Route,
 } from 'react-router-dom';
-import AnimatedCubeExample from './pages/examples/AnimatedCubeExample';
+import AnimatedCubeExample from 'pages/examples/AnimatedCubeExample';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-const Main = lazy(() => import('./pages/Main'))
+const CloudView = lazy(() => import('pages/cloud-view'))
 
 class App extends Component {
   render() {
@@ -16,10 +16,10 @@ class App extends Component {
         <Router>
           <Switch>
             <Route path="/examples/AnimatedCubeExample">
-              <AnimatedCubeExample/>
+              <AnimatedCubeExample />
             </Route>
             <Route path="/">
-              {<Main />}
+              {<CloudView />}
             </Route>
           </Switch>
         </Router>
