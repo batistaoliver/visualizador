@@ -4,9 +4,13 @@ import BasicScene from "components/BasicScene"
 import Form from 'react-bootstrap/Form'
 import {Object3D} from 'three'
 import styles from './index.scss'
-import {ButtonGroup, Button} from 'react-bootstrap'
+import {ButtonGroup, Button, Popover, OverlayTrigger} from 'react-bootstrap'
 
-type State = { mesh?: Object3D }
+type State = {
+  mesh?: Object3D
+  activePopover?: 'rotate' | 'scale' | undefined
+  scale: number
+}
 
 export default class CloudView extends React.PureComponent<{}, State> {
   loader: PCDLoader
@@ -14,7 +18,9 @@ export default class CloudView extends React.PureComponent<{}, State> {
   constructor(props: {}) {
     super(props)
     this.loader = new PCDLoader()
-    this.state = {}
+    this.state = {
+      scale: 1,
+    }
   }
 
   onFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
@@ -35,16 +41,42 @@ export default class CloudView extends React.PureComponent<{}, State> {
     console.log('An error occurred: ', error)
   }
 
-  showScalePrompt = () => {
-
+  onScaleChange = (event: ChangeEvent<any>) => {
+    if (event.target.value && Number(event.target.value) !== 1) {
+      const scale = Number(event.target.value)
+      this.state.mesh.scale.set(scale, scale, scale)
+      this.setState({ scale })
+    }
   }
 
-  showRotatePrompt = () => {
+  renderScalePopover = () => {
+    return (
+      <Popover id="popover-basic">
+        <Popover.Title as="h3">Scale</Popover.Title>
+        <Popover.Content>
+          <Form.Group>
+            <Form.Control type="range" step="0.2" min="1" max="10" value={this.state.scale} onChange={this.onScaleChange}/>
+          </Form.Group>
+          <Button
+            children="Close"
+            className={styles.button}
+            onClick={() => this.setState({activePopover: undefined})}
+            size="sm"
+            variant="secondary"
+          />
+        </Popover.Content>
+      </Popover>
+    )
+  }
 
+  showRotatePopover = (): null => {
+    // TODO
+    return null
   }
 
   render() {
-    const showInput = !this.state.mesh
+    const {activePopover, mesh} = this.state
+    const showInput = !mesh
 
     return (
       <div className={styles.page}>
@@ -63,10 +95,23 @@ export default class CloudView extends React.PureComponent<{}, State> {
 
         {!showInput && (
           <div className={styles.viewContent}>
-            <BasicScene mesh={this.state.mesh} width="800px" height="400px"/>
+            <BasicScene mesh={mesh} width="800px" height="400px"/>
             <ButtonGroup className={styles.buttonGroup}>
-              <Button className={styles.button} variant="secondary" size="sm" onClick={this.showScalePrompt}>Scale</Button>
-              <Button className={styles.button} variant="secondary" size="sm" onClick={this.showRotatePrompt}>Rotate</Button>
+              <OverlayTrigger placement="right" show={activePopover === 'scale'} overlay={this.renderScalePopover()}>
+                <Button
+                  children="Scale"
+                  className={styles.button}
+                  onClick={() => this.setState({activePopover: 'scale'})}
+                  size="sm"
+                  variant="secondary"
+                />
+              </OverlayTrigger>
+              <Button
+                children="Rotate"
+                className={styles.button}
+                size="sm"
+                variant="secondary"
+              />
             </ButtonGroup>
           </div>
         )}
