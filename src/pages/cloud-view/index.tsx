@@ -1,10 +1,11 @@
 import React, {ChangeEvent} from 'react'
-import {PCDLoader} from "three/examples/jsm/loaders/PCDLoader"
+import { PCDLoader } from "three/examples/jsm/loaders/PCDLoader"
 import BasicScene from "components/BasicScene"
 import Form from 'react-bootstrap/Form'
-import {Object3D} from 'three'
+import { Object3D } from 'three'
+import ScaleButton from 'components/action-tools/ScaleButton'
 import styles from './index.scss'
-import {ButtonGroup, Button, Popover, OverlayTrigger} from 'react-bootstrap'
+import { ButtonGroup, Button } from 'react-bootstrap'
 
 type State = {
   mesh?: Object3D
@@ -41,39 +42,6 @@ export default class CloudView extends React.PureComponent<{}, State> {
     console.log('An error occurred: ', error)
   }
 
-  onScaleChange = (event: ChangeEvent<any>) => {
-    if (event.target.value && Number(event.target.value) !== 1) {
-      const scale = Number(event.target.value)
-      this.state.mesh.scale.set(scale, scale, scale)
-      this.setState({ scale })
-    }
-  }
-
-  renderScalePopover = () => {
-    return (
-      <Popover id="popover-basic">
-        <Popover.Title as="h3">Scale</Popover.Title>
-        <Popover.Content>
-          <Form.Group>
-            <Form.Control type="range" step="0.2" min="1" max="10" value={this.state.scale} onChange={this.onScaleChange}/>
-          </Form.Group>
-          <Button
-            children="Close"
-            className={styles.button}
-            onClick={() => this.setState({activePopover: undefined})}
-            size="sm"
-            variant="secondary"
-          />
-        </Popover.Content>
-      </Popover>
-    )
-  }
-
-  showRotatePopover = (): null => {
-    // TODO
-    return null
-  }
-
   render() {
     const {activePopover, mesh} = this.state
     const showInput = !mesh
@@ -97,15 +65,13 @@ export default class CloudView extends React.PureComponent<{}, State> {
           <div className={styles.viewContent}>
             <BasicScene mesh={mesh} width="800px" height="400px"/>
             <ButtonGroup className={styles.buttonGroup}>
-              <OverlayTrigger placement="right" show={activePopover === 'scale'} overlay={this.renderScalePopover()}>
-                <Button
-                  children="Scale"
-                  className={styles.button}
-                  onClick={() => this.setState({activePopover: 'scale'})}
-                  size="sm"
-                  variant="secondary"
-                />
-              </OverlayTrigger>
+              <ScaleButton
+                className={styles.button}
+                mesh={mesh}
+                onClick={() => this.setState({ activePopover: 'scale' })}
+                onClose={() => this.setState({ activePopover: undefined })}
+                showContent={activePopover === 'scale'}
+              />
               <Button
                 children="Rotate"
                 className={styles.button}
