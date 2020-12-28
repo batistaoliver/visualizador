@@ -5,8 +5,9 @@ import { Object3D, Scene, Camera, Renderer } from 'three'
 type Props = {
   width: string,
   height: string,
-  onAnimate: Function,
+  onAnimate: Function
   mesh: Object3D
+  showAxes?: boolean
 }
 
 export default class BasicScene extends PureComponent<Props> {
@@ -14,12 +15,14 @@ export default class BasicScene extends PureComponent<Props> {
     width: '400px',
     height: '400px',
     onAnimate: Function.prototype,
+    showAxes: false,
   }
   mount: HTMLDivElement
   scene: Scene
   camera: Camera
   renderer: Renderer
   frameId: number
+  axesHelper: THREE.AxesHelper
 
   constructor(props: Props) {
     super(props)
@@ -27,6 +30,7 @@ export default class BasicScene extends PureComponent<Props> {
     this.start = this.start.bind(this)
     this.stop = this.stop.bind(this)
     this.animate = this.animate.bind(this)
+    this.axesHelper = new THREE.AxesHelper(3)
   }
 
   componentDidMount() {
@@ -51,6 +55,10 @@ export default class BasicScene extends PureComponent<Props> {
     this.camera = camera
     this.renderer = renderer
 
+    if (this.props.showAxes) {
+      this.scene.add(this.axesHelper)
+    }
+
     this.mount.appendChild(this.renderer.domElement)
     this.start()
   }
@@ -58,6 +66,14 @@ export default class BasicScene extends PureComponent<Props> {
   componentWillUnmount() {
     this.stop()
     this.mount.removeChild(this.renderer.domElement)
+  }
+
+  componentDidUpdate(prevProps: Readonly<Props>) {
+    if (this.props.showAxes && prevProps.showAxes !== this.props.showAxes) {
+      this.scene.add(this.axesHelper)
+    } else if (!this.props.showAxes && prevProps.showAxes !== this.props.showAxes) {
+      this.scene.remove(this.axesHelper)
+    }
   }
 
   start() {

@@ -1,7 +1,7 @@
 import React, {ChangeEvent, PureComponent} from 'react'
-import {Button, ButtonProps, OverlayTrigger, Popover} from 'react-bootstrap'
+import { Button, ButtonProps, OverlayTrigger, Popover } from 'react-bootstrap'
 import Form from 'react-bootstrap/esm/Form'
-import { Object3D } from 'three'
+import {Object3D, Vector3} from 'three'
 import styles from './action-tools.scss'
 
 type Props = {

@@ -2,6 +2,7 @@ import React, {ChangeEvent} from 'react'
 import { PCDLoader } from "three/examples/jsm/loaders/PCDLoader"
 import BasicScene from "components/BasicScene"
 import Form from 'react-bootstrap/Form'
+import * as THREE from 'three'
 import { Object3D } from 'three'
 import ScaleButton from 'components/action-tools/ScaleButton'
 import RotateButton from 'components/action-tools/RotateButton'
@@ -9,8 +10,9 @@ import { ButtonGroup, Button } from 'react-bootstrap'
 import styles from './index.scss'
 
 type State = {
-  mesh?: Object3D
   activePopover?: 'rotate' | 'scale' | undefined
+  mesh?: Object3D
+  showAxes: boolean
 }
 
 export default class CloudView extends React.PureComponent<{}, State> {
@@ -19,7 +21,7 @@ export default class CloudView extends React.PureComponent<{}, State> {
   constructor(props: {}) {
     super(props)
     this.loader = new PCDLoader()
-    this.state = {}
+    this.state = { showAxes: false }
   }
 
   onFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
@@ -29,7 +31,7 @@ export default class CloudView extends React.PureComponent<{}, State> {
     this.loader.load(inputUrl, this.onLoad, this.onLoadProgress, this.onLoadError)
   }
 
-  onLoad = (mesh: Object3D) => this.setState({mesh})
+  onLoad = (mesh: Object3D) => this.setState({ mesh })
 
   onLoadProgress = (xhr: ProgressEvent) => {
     console.log(Number(xhr.loaded / xhr.total * 100).toFixed(2) + '% loaded')
@@ -41,7 +43,7 @@ export default class CloudView extends React.PureComponent<{}, State> {
   }
 
   render() {
-    const {activePopover, mesh} = this.state
+    const { activePopover, mesh, showAxes } = this.state
     const showInput = !mesh
 
     return (
@@ -61,7 +63,7 @@ export default class CloudView extends React.PureComponent<{}, State> {
 
         {!showInput && (
           <div className={styles.viewContent}>
-            <BasicScene mesh={mesh} width="800px" height="400px"/>
+            <BasicScene mesh={mesh} width="800px" height="400px" showAxes={showAxes} />
             <ButtonGroup className={styles.buttonGroup}>
               <ScaleButton
                 className={styles.button}
@@ -78,6 +80,11 @@ export default class CloudView extends React.PureComponent<{}, State> {
                 showContent={activePopover === 'rotate'}
               />
             </ButtonGroup>
+            <Form.Check
+              checked={showAxes}
+              label={<small>Show axes</small>}
+              onChange={() => this.setState(state => ({ showAxes: !state.showAxes }))}
+            />
           </div>
         )}
       </div>

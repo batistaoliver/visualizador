@@ -1,7 +1,7 @@
 import React, {ChangeEvent, PureComponent} from 'react'
-import {Button, ButtonProps, OverlayTrigger, Popover} from 'react-bootstrap'
+import { Button, ButtonProps, OverlayTrigger, Popover } from 'react-bootstrap'
 import Form from 'react-bootstrap/esm/Form'
-import {Object3D} from 'three'
+import { Object3D } from 'three'
 import styles from './action-tools.scss'
 
 type Props = {
@@ -50,8 +50,8 @@ export default class ScaleButton extends PureComponent<Props, State> {
   renderPopover = () => {
     const {individualAxis, scale} = this.state
     const rangeInputDefaults = {
-      max: '10',
-      min: '1',
+      max: '20',
+      min: '0.2',
       step: '0.2',
       type: 'range',
     }
@@ -70,6 +70,7 @@ export default class ScaleButton extends PureComponent<Props, State> {
                 value={scale[0]}
                 {...rangeInputDefaults}
               />
+              <small>{scale[0]}x</small>
             </Form.Row>
             {individualAxis && (
               <>
