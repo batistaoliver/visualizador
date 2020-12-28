@@ -83,6 +83,7 @@ export default class ScaleButton extends PureComponent<Props, State> {
                     value={scale[1]}
                     {...rangeInputDefaults}
                   />
+                  <small>{scale[1]}x</small>
                 </Form.Row>
                 <Form.Row>
                   <span className={styles.axisLabel}>Z</span>
@@ -93,6 +94,7 @@ export default class ScaleButton extends PureComponent<Props, State> {
                     value={scale[2]}
                     {...rangeInputDefaults}
                   />
+                  <small>{scale[2]}x</small>
                 </Form.Row>
               </>
             )}
