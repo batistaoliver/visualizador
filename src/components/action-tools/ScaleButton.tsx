@@ -2,7 +2,7 @@ import React, {ChangeEvent, PureComponent} from 'react'
 import {Button, ButtonProps, OverlayTrigger, Popover} from 'react-bootstrap'
 import Form from 'react-bootstrap/esm/Form'
 import {Object3D} from 'three'
-import styles from './ScaleButton.scss'
+import styles from './action-tools.scss'
 
 type Props = {
   mesh: Object3D

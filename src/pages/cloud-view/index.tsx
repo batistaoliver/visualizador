@@ -4,13 +4,13 @@ import BasicScene from "components/BasicScene"
 import Form from 'react-bootstrap/Form'
 import { Object3D } from 'three'
 import ScaleButton from 'components/action-tools/ScaleButton'
-import styles from './index.scss'
+import RotateButton from 'components/action-tools/RotateButton'
 import { ButtonGroup, Button } from 'react-bootstrap'
+import styles from './index.scss'
 
 type State = {
   mesh?: Object3D
   activePopover?: 'rotate' | 'scale' | undefined
-  scale: number
 }
 
 export default class CloudView extends React.PureComponent<{}, State> {
@@ -19,9 +19,7 @@ export default class CloudView extends React.PureComponent<{}, State> {
   constructor(props: {}) {
     super(props)
     this.loader = new PCDLoader()
-    this.state = {
-      scale: 1,
-    }
+    this.state = {}
   }
 
   onFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
@@ -72,11 +70,12 @@ export default class CloudView extends React.PureComponent<{}, State> {
                 onClose={() => this.setState({ activePopover: undefined })}
                 showContent={activePopover === 'scale'}
               />
-              <Button
-                children="Rotate"
+              <RotateButton
                 className={styles.button}
-                size="sm"
-                variant="secondary"
+                mesh={mesh}
+                onClick={() => this.setState({ activePopover: 'rotate' })}
+                onClose={() => this.setState({ activePopover: undefined })}
+                showContent={activePopover === 'rotate'}
               />
             </ButtonGroup>
           </div>
