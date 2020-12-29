@@ -9,6 +9,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 const CloudView = lazy(() => import('pages/cloud-view'))
 
+//const ListView = lazy(() => import('pages/list-view'))
+
 class App extends Component {
   render() {
     return (
@@ -21,6 +23,9 @@ class App extends Component {
             <Route path="/">
               {<CloudView />}
             </Route>
+            {/* <Route path="/">
+              {<ListView /list>}
+            </Route> */}
           </Switch>
         </Router>
       </Suspense>
