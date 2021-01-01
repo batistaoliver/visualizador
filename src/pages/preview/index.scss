@@ -1,0 +1,23 @@
+.viewContent {
+    width: 100%;
+    max-width: 50rem;
+    margin: 0 auto;
+  }
+  
+  .page {
+    margin: 1rem auto;
+  }
+  
+  .buttonGroup {
+    margin-top: 1rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .button:not(:last-child) {
+    margin-right: 0.5rem;
+  }
+
+  .center{
+    margin: 0 auto;
+    width: min-content
+  }

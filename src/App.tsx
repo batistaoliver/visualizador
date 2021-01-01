@@ -9,7 +9,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 const CloudView = lazy(() => import('pages/cloud-view'))
 
-//const ListView = lazy(() => import('pages/list-view'))
+const ListView = lazy(() => import('pages/list-view'))
 
 class App extends Component {
   render() {
@@ -20,12 +20,12 @@ class App extends Component {
             <Route path="/examples/AnimatedCubeExample">
               <AnimatedCubeExample />
             </Route>
+            <Route path="/list">
+              {<ListView />}
+            </Route>
             <Route path="/">
               {<CloudView />}
-            </Route>
-            {/* <Route path="/">
-              {<ListView /list>}
-            </Route> */}
+            </Route> 
           </Switch>
         </Router>
       </Suspense>
