@@ -12,6 +12,8 @@ const ApiTest = lazy(() => import('pages/api-test'))
 
 const ListView = lazy(() => import('pages/list-view'))
 
+const CloudInsert = lazy(() => import('pages/cloud-insert'))
+
 class App extends Component {
   render() {
     return (
@@ -20,6 +22,9 @@ class App extends Component {
           <Switch>
             <Route path="/examples/AnimatedCubeExample">
               <AnimatedCubeExample />
+            </Route>
+            <Route path="/insert">
+              {<CloudInsert />}
             </Route>
             <Route path="/list">
               {<ListView />}

@@ -56,6 +56,7 @@ export default class BasicTable extends PureComponent {
                 {this.renderTableData()}
              </tbody>
           </Table>
+          <Button variant="primary" href="/insert">Incluir</Button>
        </div>
     )
  }
