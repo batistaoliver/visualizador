@@ -8,6 +8,7 @@ import AnimatedCubeExample from 'pages/examples/AnimatedCubeExample';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const CloudView = lazy(() => import('pages/cloud-view'))
+const ApiTest = lazy(() => import('pages/api-test'))
 
 const ListView = lazy(() => import('pages/list-view'))
 
@@ -22,6 +23,10 @@ class App extends Component {
             </Route>
             <Route path="/list">
               {<ListView />}
+            </Route>
+            <Route path="/cloud/:id" component={ListView} />
+            <Route path="/api-test">
+              {<ApiTest />}
             </Route>
             <Route path="/">
               {<CloudView />}
