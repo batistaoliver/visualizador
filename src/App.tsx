@@ -24,6 +24,7 @@ class App extends Component {
             <Route path="/list">
               {<ListView />}
             </Route>
+            <Route path="/cloud/:id" component={ListView} />
             <Route path="/api-test">
               {<ApiTest />}
             </Route>
