@@ -33,9 +33,7 @@ class App extends Component {
             <Route path="/api-test">
               {<ApiTest />}
             </Route>
-            <Route path="/">
-              {<CloudView />}
-            </Route> 
+            <Route path="/:id" component={CloudView}/>  
           </Switch>
         </Router>
       </Suspense>

@@ -1,13 +1,8 @@
 import React from 'react'
 import { PCDLoader } from "three/examples/jsm/loaders/PCDLoader"
 import BasicScene from "components/BasicScene"
-import Form from 'react-bootstrap/Form'
 import { Object3D } from 'three'
-import ScaleButton from 'components/action-tools/ScaleButton'
-import RotateButton from 'components/action-tools/RotateButton'
-import { ButtonGroup } from 'react-bootstrap'
 import styles from './index.scss'
-import { nextTick } from 'process'
 
 type State = {
   activePopover?: 'rotate' | 'scale' | undefined

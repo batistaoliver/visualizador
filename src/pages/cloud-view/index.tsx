@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { ChangeEvent } from 'react'
 import { PCDLoader } from "three/examples/jsm/loaders/PCDLoader"
 import BasicScene from "components/BasicScene"
 import Form from 'react-bootstrap/Form'
@@ -8,13 +8,14 @@ import RotateButton from 'components/action-tools/RotateButton'
 import { ButtonGroup } from 'react-bootstrap'
 import styles from './index.scss'
 
+
 type State = {
   activePopover?: 'rotate' | 'scale' | undefined
   mesh?: Object3D
   showAxes: boolean
 }
 
-export default class CloudView extends React.PureComponent<{}, State> {
+export default class CloudView extends React.PureComponent<any, State>  {
   loader: PCDLoader
 
   constructor(props: {}) {
@@ -39,6 +40,7 @@ export default class CloudView extends React.PureComponent<{}, State> {
   }
 
   render() {
+    console.log('this.props.match.params', this.props.match)
     const { activePopover, mesh, showAxes } = this.state
     if (!mesh) return null
 

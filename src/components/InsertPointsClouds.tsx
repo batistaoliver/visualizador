@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react' 
 import Button from 'react-bootstrap/Button'
+import Form from 'react-bootstrap/Form'
 
 export default class FormInsert extends React.Component <{}, { value: string }>{
     constructor(props:any) {
@@ -35,7 +36,10 @@ export default class FormInsert extends React.Component <{}, { value: string }>{
                     <div className="row">
                       <div className="col-lg-12 col-md-12">
                         <label> Url:</label>
-                        <input type="text" className="form-control" value={this.state.value} onChange={this.handleChange} />
+                        <Form>
+                          <Form.File 
+                            id="custom-file" label="Custom file input" custom value={this.state.value} onChange={this.handleChange}/>
+                        </Form> 
                       </div>  
                     </div>
                   </div>

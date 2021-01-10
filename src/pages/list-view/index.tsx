@@ -8,7 +8,7 @@ type State = { mesh?: Object3D }
 export default class Main extends React.PureComponent<any, State> {
   
   render() {
-    console.log('this.props.match.params', this.props.match.params)
+    //console.log('this.props.match.params', this.props.match.params)
 
     return (
       <div className={styles.page}>
