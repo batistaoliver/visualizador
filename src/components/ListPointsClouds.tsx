@@ -4,7 +4,7 @@ import Button from 'react-bootstrap/Button'
 import ButtonGroup from 'react-bootstrap/ButtonGroup'
 import Preview from 'pages/preview/index';
 import Modal from 'react-bootstrap/Modal'
-
+import axios from 'axios'
 
 const clouds = [
   { id: 1, name: 'Rabbit', url: '/assets/test-pcds/bunny.pcd'},
@@ -12,10 +12,23 @@ const clouds = [
   { id: 3, name: 'owl3_05', url: '/assets/test-pcds/owl3_05.pcd'}
 ]
 
-export default class BasicTable extends PureComponent {
-  constructor(props: any) {
-    super(props) 
- }
+type State = {clouds: Array<any>}
+
+export default class BasicTable extends PureComponent <{}, State>{
+   state= {clouds:[]}
+
+componentDidMount(){
+   axios({ 
+      url: 'http://localhost:8880/api/point-clouds'
+    })
+      .then((response)=>{
+        this.setState({clouds: response.data})
+      })
+      .catch((response) =>{
+       console.log(response)
+      })
+    }
+
 
  renderTableHeader() {
     let header = Object.keys(clouds[0])
@@ -24,15 +37,15 @@ export default class BasicTable extends PureComponent {
     })
  }
 
- renderTableData() {
-    return clouds.map((clouds) => {
+ renderTableData= () => {
+    return this.state.clouds.map((clouds) => {
        const { id, name, url } = clouds //destructuring
        const rota = "/" + id 
        return (
           <tr key={id}>
              <th className="align-middle">{id}</th>
              <th className="align-middle">{name}</th>
-             <th><Preview url={url}/></th>
+             <th><Preview url={"http://localhost:8880" + url}/></th>
              <th className="align-middle">
               <ButtonGroup claaria-label="Basic example">
                 <Button href= {rota}  variant="success">Visualizar</Button>

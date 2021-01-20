@@ -1,26 +1,38 @@
 import React, { PureComponent } from 'react' 
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
+import axios from 'axios'
 
-export default class FormInsert extends React.Component <{}, { value: string }>{
-    constructor(props:any) {
-        super(props);
-        this.state = {value: ''};
-        this.handleChange = this.handleChange.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
+export default class FormInsert extends React.Component <{}, { name: string, file: any }>{
+    state= {name: "",file:""}
+
+      handleChangeName = (event: any) => {    
+        this.setState({name: event.target.value});  
       }
-    
-      handleChange(event: any) {    
-        this.setState({value: event.target.value});  
+      handleChangeFile = (event: any) => {    
+        this.setState({file: event.target.files[0]});  
       }
-      handleSubmit(event: any) {
-        alert('A nuvem foi inserida: ' + this.state.value);
-        event.preventDefault();
-      }
+      submit = () => {
+        const bodyFormData = new FormData()
+        bodyFormData.append('file', this.state.file)
+        bodyFormData.append('name', this.state.name)
+
+        axios({
+          method: 'post',
+          url: 'http://localhost:8880/api/point-clouds',
+          data: bodyFormData,
+          headers: {'Content-Type': 'multipart/form-data'}
+        })
+          .then(function (response) {
+            window.location.href="/list"
+          })
+          .catch(function (response) {
+           console.log(response)
+          })
+        }
     
       render() {
         return (
-          <form onSubmit={this.handleSubmit}>
             <div className="modal-dialog" role="document">
                 <div className="modal-content">
                   <div className="modal-header">
@@ -29,27 +41,25 @@ export default class FormInsert extends React.Component <{}, { value: string }>{
                   <div className="modal-body">
                     <div className="row">
                       <div className="col-lg-12 col-md-12">
-                        <label> Nome:</label>
-                        <input type="text" className="form-control" value={this.state.value} onChange={this.handleChange} />
+                      <Form.Label>Nome:</Form.Label>
+                      <Form.Control type="text" onChange={this.handleChangeName}/> 
                       </div>
                     </div>
                     <div className="row">
                       <div className="col-lg-12 col-md-12">
-                        <label> Url:</label>
                         <Form>
                           <Form.File 
-                            id="custom-file" label="Custom file input" custom value={this.state.value} onChange={this.handleChange}/>
+                            id="custom-file" label="Insert" onChange={this.handleChangeFile}/>
                         </Form> 
                       </div>  
                     </div>
                   </div>
                   <div className="modal-footer">
                     < Button variant="primary" href="/list">Voltar</Button>
-                    <input className="btn btn-success" type="submit" value="Inserir" />
+                    <Button className="btn btn-success" type="button" onClick={this.submit}>Inserir</Button>
                   </div>
                 </div>
               </div>
-          </form> 
         );
       }
 }
