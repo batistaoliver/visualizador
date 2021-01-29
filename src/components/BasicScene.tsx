@@ -37,17 +37,17 @@ export default class BasicScene extends PureComponent<Props> {
   }
 
   componentDidMount() {
-    axios({ 
-      method: 'get',
-      url: 'http://localhost:8880/api/point-clouds/6'
-    })
-      .then((response)=>{
-        this.setState(response)
-        console.log(response.data.url)
-      })
-      .catch((response) =>{
-       console.log(response)
-      })
+    // axios({ 
+    //   method: 'get',
+    //   url: 'http://localhost:8880/api/point-clouds/6'
+    // })
+    //   .then((response)=>{
+    //     this.setState(response)
+    //     console.log(response.data.url)
+    //   })
+    //   .catch((response) =>{
+    //    console.log(response)
+    //   })
 
 
     const width = this.mount.clientWidth

@@ -2,6 +2,7 @@ import React, { ChangeEvent } from 'react'
 import { PCDLoader } from "three/examples/jsm/loaders/PCDLoader"
 import BasicScene from "components/BasicScene"
 import Form from 'react-bootstrap/Form'
+import Modal from 'react-bootstrap/Modal'
 import { Object3D } from 'three'
 import ScaleButton from 'components/action-tools/ScaleButton'
 import RotateButton from 'components/action-tools/RotateButton'
@@ -25,7 +26,8 @@ export default class CloudView extends React.PureComponent<any, State>  {
   }
 
   componentDidMount() {
-    this.loader.load('/assets/test-pcds/bunny.pcd', this.onLoad, this.onLoadProgress, this.onLoadError)
+    this.loader.load(this.props.url, this.onLoad, this.onLoadProgress, this.onLoadError)
+    console.log(this.props.url +"ok")
   }
 
   onLoad = (mesh: Object3D) => this.setState({ mesh })
@@ -47,8 +49,20 @@ export default class CloudView extends React.PureComponent<any, State>  {
     return (
       <div className={styles.page}>
         <div className={styles.viewContent}>
-          <BasicScene mesh={mesh} width="800px" height="400px" showAxes={showAxes} />
-          <ButtonGroup className={styles.buttonGroup}>
+        <Modal.Dialog className={styles.modalSize}>
+          <Modal.Header>
+            <Modal.Title>View Point Clouds</Modal.Title>
+          </Modal.Header> 
+          <Modal.Body>
+              <BasicScene mesh={mesh} width="1065px" height="400px" showAxes={showAxes} />
+            <Form.Check
+            checked={showAxes}
+            label={<small>Show axes</small>}
+            onChange={() => this.setState(state => ({ showAxes: !state.showAxes }))}
+          />
+          </Modal.Body> 
+          <Modal.Footer>
+          <ButtonGroup className={styles.buttonGroup} >
             <ScaleButton
               className={styles.button}
               mesh={mesh}
@@ -64,11 +78,8 @@ export default class CloudView extends React.PureComponent<any, State>  {
               showContent={activePopover === 'rotate'}
             />
           </ButtonGroup>
-          <Form.Check
-            checked={showAxes}
-            label={<small>Show axes</small>}
-            onChange={() => this.setState(state => ({ showAxes: !state.showAxes }))}
-          />
+          </Modal.Footer>
+      </Modal.Dialog>
         </div>
       </div>
     )

@@ -1,6 +1,5 @@
 .viewContent {
   width: 100%;
-  max-width: 50rem;
   margin: 0 auto;
 }
 
@@ -9,10 +8,16 @@
 }
 
 .buttonGroup {
-  margin-top: 1rem;
-  margin-bottom: 0.75rem;
+  // margin-top: 1rem;
+  // margin-bottom: 0.75rem;
+  // text-align: left;
 }
 
 .button:not(:last-child) {
   margin-right: 0.5rem;
+}
+
+.modalSize {
+  max-width: 2240px;
+  width: 1100px;
 }

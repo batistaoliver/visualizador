@@ -12,10 +12,10 @@ const clouds = [
   { id: 3, name: 'owl3_05', url: '/assets/test-pcds/owl3_05.pcd'}
 ]
 
-type State = {clouds: Array<any>}
+type State = {clouds: Array<any>;deleteID: string|null}
 
 export default class BasicTable extends PureComponent <{}, State>{
-   state= {clouds:[]}
+   state= {clouds:[], deleteID:null}
 
 componentDidMount(){
    axios({ 
@@ -50,7 +50,7 @@ componentDidMount(){
               <ButtonGroup claaria-label="Basic example">
                 <Button href= {rota}  variant="success">Visualizar</Button>
                 <Button variant="primary">Editar</Button>
-                <Button variant="danger">Deletar</Button>
+                <Button variant="danger" onClick={() => this.setState({ deleteID: id })}>Deletar</Button>
               </ButtonGroup>
              </th> 
           </tr>
@@ -58,11 +58,32 @@ componentDidMount(){
     })
  }
 
+renderDEleteModal= () => {
+ 
+   return (
+     <> 
+       <Modal show={this.state.deleteID!==null}>
+         <Modal.Header closeButton>
+           <Modal.Title>Deletar Nuvem</Modal.Title>
+         </Modal.Header>
+         <Modal.Body>Confirma a exclusão?</Modal.Body>
+         <Modal.Footer>
+           <Button variant="secondary" onClick={() => this.setState({ deleteID: null })}>
+             Não
+           </Button>
+           <Button variant="primary">
+             Sim
+           </Button>
+         </Modal.Footer>
+       </Modal>
+     </>
+   );
+ }
+ 
  render() {
     return (
        <div>
           <h1 id='title'>Point Clouds Preview Table</h1>
-          
           <Table striped bordered hover id='table-clouds'>
              <tbody>
                 <tr id='table-header'>
@@ -73,6 +94,7 @@ componentDidMount(){
              </tbody>
           </Table>
           <Button variant="primary" href="/insert">Incluir Nova Nuvem</Button>
+          {this.renderDEleteModal()}
        </div>
     )
  }

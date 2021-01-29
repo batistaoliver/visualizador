@@ -12,6 +12,8 @@ const ApiTest = lazy(() => import('pages/api-test'))
 
 const ListView = lazy(() => import('pages/list-view'))
 
+const SingleView = lazy(() => import('pages/single-cloud-view'))
+
 const CloudInsert = lazy(() => import('pages/cloud-insert'))
 
 class App extends Component {
@@ -33,7 +35,7 @@ class App extends Component {
             <Route path="/api-test">
               {<ApiTest />}
             </Route>
-            <Route path="/:id" component={CloudView}/>  
+            <Route path="/:id" component={SingleView}/>  
           </Switch>
         </Router>
       </Suspense>
