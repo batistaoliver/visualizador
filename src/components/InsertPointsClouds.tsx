@@ -1,18 +1,21 @@
-import React, { PureComponent } from 'react' 
+import React, { PureComponent } from 'react'
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
 import axios from 'axios'
+import { withRouter } from 'react-router-dom'
+import { RouteComponentProps } from 'react-router'
 
-export default class FormInsert extends React.Component <{}, { name: string, file: any }>{
+class FormInsert extends PureComponent <RouteComponentProps, { name: string, file: any }>{
     state= {name: "",file:""}
 
-      handleChangeName = (event: any) => {    
-        this.setState({name: event.target.value});  
+      handleChangeName = (event: any) => {
+        this.setState({name: event.target.value});
       }
-      handleChangeFile = (event: any) => {    
-        this.setState({file: event.target.files[0]});  
+      handleChangeFile = (event: any) => {
+        this.setState({file: event.target.files[0]});
       }
       submit = () => {
+        const { history } = this.props
         const bodyFormData = new FormData()
         bodyFormData.append('file', this.state.file)
         bodyFormData.append('name', this.state.name)
@@ -24,34 +27,34 @@ export default class FormInsert extends React.Component <{}, { name: string, fil
           headers: {'Content-Type': 'multipart/form-data'}
         })
           .then(function (response) {
-            window.location.href="/list"
+            history.push('/list')
           })
           .catch(function (response) {
            console.log(response)
           })
         }
-    
+
       render() {
         return (
             <div className="modal-dialog" role="document">
                 <div className="modal-content">
                   <div className="modal-header">
-                    <h5 className="modal-title">Insira uma Nuvem</h5> 
+                    <h5 className="modal-title">Insira uma Nuvem</h5>
                   </div>
                   <div className="modal-body">
                     <div className="row">
                       <div className="col-lg-12 col-md-12">
                       <Form.Label>Nome:</Form.Label>
-                      <Form.Control type="text" onChange={this.handleChangeName}/> 
+                      <Form.Control type="text" onChange={this.handleChangeName}/>
                       </div>
                     </div>
                     <div className="row">
                       <div className="col-lg-12 col-md-12">
                         <Form>
-                          <Form.File 
+                          <Form.File
                             id="custom-file" label="Insert" onChange={this.handleChangeFile}/>
-                        </Form> 
-                      </div>  
+                        </Form>
+                      </div>
                     </div>
                   </div>
                   <div className="modal-footer">
@@ -63,3 +66,5 @@ export default class FormInsert extends React.Component <{}, { name: string, fil
         );
       }
 }
+
+export default withRouter(FormInsert)
