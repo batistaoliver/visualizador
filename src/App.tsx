@@ -16,6 +16,8 @@ const SingleView = lazy(() => import('pages/single-cloud-view'))
 
 const CloudInsert = lazy(() => import('pages/cloud-insert'))
 
+const CloudEdit = lazy(() => import('pages/cloud-edit'))
+
 class App extends Component {
   render() {
     return (
@@ -28,6 +30,7 @@ class App extends Component {
             <Route path="/insert">
               {<CloudInsert />}
             </Route>
+            <Route path="/edit/:id" component={CloudEdit}/>
             <Route path="/list">
               {<ListView />}
             </Route>
