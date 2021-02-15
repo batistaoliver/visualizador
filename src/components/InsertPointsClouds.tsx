@@ -28,6 +28,7 @@ class FormInsert extends PureComponent <RouteComponentProps, { name: string, fil
         })
           .then(function (response) {
             history.push('/list')
+            //window.location.href="list"
           })
           .catch(function (response) {
            console.log(response)

@@ -29,14 +29,13 @@ componentDidMount(){
       })
     }
     submit = () => {
-
+      console.log(this.state.deleteID)
       axios({
          method: 'DELETE',
          url: 'http://localhost:8880/api/point-clouds/' + this.state.deleteID
-
        })
-         .then(function (response) {
-           window.location.href="/list"
+         .then(function (response) { 
+          console.log(response)
          })
          .catch(function (response) {
           console.log(response)
@@ -77,7 +76,7 @@ renderDEleteModal= () => {
    return (
      <> 
        <Modal show={this.state.deleteID!==null}>
-         <Modal.Header closeButton>
+         <Modal.Header>
            <Modal.Title>Deletar Nuvem</Modal.Title>
          </Modal.Header>
          <Modal.Body>Confirma a exclusão?</Modal.Body>

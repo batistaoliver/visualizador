@@ -9,36 +9,56 @@ type Props = {
 
 export default class FormInsert extends React.Component <Props,{}, { name: string, file: any }>{
     state= {name: "",file:""}
-
+    handleChangeName = (event: any) => {
+      this.setState({name: event.target.value});
+    }
+    // handleChangeFile = (event: any) => {
+    //   this.setState({file: event.target.files[0]});
+    // }
     //   handleChangeName = (event: any) => {    
     //     this.setState({name: event.target.value});  
     //   }
      
       componentDidMount(){
         var form = new FormData();
-        form.append("name", "My Wonderful Cloud");
-        form.append("file", this.state.name);
+          
+        // var form = new FormData();
+        // form.append("name", "My Wonderful Cloud");
+        // form.append("file", this.state.name);
 
         axios({ 
-           method: 'PATCH',
-           url: 'http://localhost:8880/api/point-clouds/' + this.props.id,
-           timeout: 0,
-           data: form
-         })
-           .then((response)=>{
-             this.setState(response)
-             console.log(response.data.name)
-             this.setState({name: response.data.name})
-             console.log(this.state.name)
-           })
-           .catch((response) =>{
-            console.log(response)
-           })
+          method: 'get',
+          url: 'http://localhost:8880/api/point-clouds/' + this.props.id
+        })
+          .then((response)=>{
+            this.setState(response)
+            form.append("name", response.data.name);
+            this.setState({name: response.data.name})
+            // console.log(response.data.name) 
+            
+          })
+          .catch((response) =>{
+           console.log(response)
+          })
+          form.append("name", this.state.name);
+          
          }
-    
-         handleChangeFile = (event: any) => {   
-        
-            this.setState({file: event.target.files[0]});  
+
+         submit = () => {
+          var form = new FormData();
+          form.append("name", this.state.name);
+          axios({ 
+            method: 'PATCH',
+            url: 'http://localhost:8880/api/point-clouds/' + this.props.id,
+            timeout: 0,
+            data: form
+          })
+            .then((response)=>{
+              console.log(this.state.name)
+            })
+            .catch((response) =>{
+              console.log(response)
+            })
           }
 
       render() {
@@ -52,21 +72,13 @@ export default class FormInsert extends React.Component <Props,{}, { name: strin
                     <div className="row">
                       <div className="col-lg-12 col-md-12">
                       <Form.Label>Nome:</Form.Label>
-                      <Form.Control type="text"/> 
+                      <Form.Control type="text" onChange={this.handleChangeName}/>
                       </div>
-                    </div>
-                    <div className="row">
-                      <div className="col-lg-12 col-md-12">
-                        <Form>
-                          <Form.File 
-                            id="custom-file" label="Insert" onChange={this.handleChangeFile}/>
-                        </Form> 
-                      </div>  
                     </div>
                   </div>
                   <div className="modal-footer">
                     < Button variant="primary" href="/list">Voltar</Button>
-                    {/* <Button className="btn btn-success" type="button" onClick={this.submit}>Salvar</Button> */}
+                    <Button className="btn btn-success" type="button" onClick={this.submit}>Salvar</Button>
                   </div>
                 </div>
               </div>
