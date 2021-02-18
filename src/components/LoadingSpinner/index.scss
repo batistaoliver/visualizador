@@ -1,0 +1,8 @@
+.loading {
+  margin: 2rem auto;
+  width: 15rem;
+
+  & span:last-child {
+    margin-left: 1rem;
+  }
+}

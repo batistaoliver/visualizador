@@ -3,31 +3,36 @@ import { PCDLoader } from "three/examples/jsm/loaders/PCDLoader"
 import BasicScene from "components/BasicScene"
 import Form from 'react-bootstrap/Form'
 import Modal from 'react-bootstrap/Modal'
+import Spinner from 'react-bootstrap/Spinner'
 import { Object3D } from 'three'
 import ScaleButton from 'components/action-tools/ScaleButton'
 import RotateButton from 'components/action-tools/RotateButton'
 import {Button, ButtonGroup} from 'react-bootstrap'
 import styles from './index.scss'
+import LoadingSpinner from 'components/LoadingSpinner'
 
 type State = {
   activePopover?: 'rotate' | 'scale' | undefined
   mesh?: Object3D
   showAxes: boolean
-  defaultScale?: number
+  isLoading: boolean
 }
+
+const DEFAULT_SCALE = 3
 
 export default class CloudView extends React.PureComponent<any, State> {
   loader: PCDLoader = new PCDLoader()
-  state: State = { showAxes: false, defaultScale: 3 }
+  state: State = { showAxes: false, isLoading: false }
 
   componentDidMount() {
+    this.setState({ isLoading: true })
     this.loader.load(this.props.url, this.onLoad, this.onLoadProgress, this.onLoadError)
   }
 
   onLoad = (mesh: Object3D) => {
-    const { defaultScale } = this.state
-    mesh.scale.set(defaultScale, defaultScale, defaultScale)
+    mesh.scale.fromArray([DEFAULT_SCALE, DEFAULT_SCALE, DEFAULT_SCALE])
     this.setState({ mesh })
+    this.setState({ isLoading: false })
   }
 
   onLoadProgress = (xhr: ProgressEvent) => {
@@ -37,10 +42,16 @@ export default class CloudView extends React.PureComponent<any, State> {
   onLoadError = (error: ErrorEvent) => {
     alert('Erro ao carregar nuvem de pontos :(')
     console.log('An error occurred: ', error)
+    this.setState({ isLoading: false })
   }
 
   render() {
-    const { activePopover, mesh, showAxes } = this.state
+    const { activePopover, isLoading, mesh, showAxes } = this.state
+
+    if (isLoading) {
+      return <LoadingSpinner label="Loading..." />
+    }
+
     if (!mesh) return null
 
     return (

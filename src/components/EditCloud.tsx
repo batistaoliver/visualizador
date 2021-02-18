@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react'
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
 import axios from 'axios'
-import { API_URL } from 'utils/constants'
+import { apiURL } from 'utils'
 
 type Props = { id: number }
 type State = { name: string }
@@ -17,7 +17,7 @@ export default class FormInsert extends PureComponent<Props, State> {
   componentDidMount() {
     axios({
       method: 'get',
-      url: `${API_URL}/api/point-clouds/${this.props.id}`
+      url: apiURL(`/api/point-clouds/${this.props.id}`)
     })
       .then((response) => {
         console.log(response)
@@ -34,7 +34,7 @@ export default class FormInsert extends PureComponent<Props, State> {
 
     axios({
       method: 'PATCH',
-      url: `${API_URL}/api/point-clouds/${this.props.id}`,
+      url: apiURL(`/api/point-clouds/${this.props.id}`),
       timeout: 0,
       data: form
     })

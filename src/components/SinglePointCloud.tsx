@@ -1,45 +1,39 @@
-import React, { PureComponent, useState } from 'react' 
-import Table from 'react-bootstrap/Table';
-import Button from 'react-bootstrap/Button'
-import ButtonGroup from 'react-bootstrap/ButtonGroup'
-import CloudView from 'pages/cloud-view/index';
-import Modal from 'react-bootstrap/Modal'
+import React, { PureComponent } from 'react'
+import CloudView from 'pages/cloud-view/index'
 import axios from 'axios'
+import { apiURL } from 'utils'
 
 type Props = {
-   id:number
- }
- 
+  id: number
+}
 
-export default class BasicTable extends PureComponent <Props,{}, { url: string }>{
-   state= {url: ""}
-   
-componentDidMount(){
-   axios({ 
+export default class BasicTable extends PureComponent<Props, { url: string }> {
+  state = { url: '' }
+
+  componentDidMount() {
+    axios({
       method: 'get',
-      url: 'http://localhost:8880/api/point-clouds/' + this.props.id
+      url: apiURL(`/api/point-clouds/${this.props.id}`),
     })
-      .then((response)=>{
-        this.setState(response)
+      .then((response) => {
         console.log(response.data.url)
-        this.setState({url: response.data.url})
-        
+        this.setState({ url: response.data.url })
       })
-      .catch((response) =>{
-       console.log(response)
+      .catch((response) => {
+        console.log(response)
       })
-    }
- 
- render() {
-    if(!this.state.url){
-       return null
+  }
+
+  render() {
+    if (!this.state.url) {
+      return null
     }
     return (
-       <div>
-             <div>
-                <CloudView url={"http://localhost:8880" + this.state.url}/>
-             </div> 
-       </div>
+      <div>
+        <div>
+          <CloudView url={apiURL(this.state.url)}/>
+        </div>
+      </div>
     )
- }
+  }
 }

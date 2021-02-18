@@ -5,7 +5,7 @@ import ButtonGroup from 'react-bootstrap/ButtonGroup'
 import Preview from 'pages/preview/index'
 import Modal from 'react-bootstrap/Modal'
 import axios from 'axios'
-import { API_URL } from 'utils/constants'
+import { apiURL } from 'utils'
 
 type State = { clouds: Array<any>; deleteID: string | null }
 
@@ -14,7 +14,7 @@ export default class BasicTable extends PureComponent <{}, State> {
 
   componentDidMount() {
     axios({
-      url: `${API_URL}/api/point-clouds`,
+      url: apiURL('/api/point-clouds'),
     })
       .then((response) => {
         this.setState({ clouds: response.data })
@@ -28,7 +28,7 @@ export default class BasicTable extends PureComponent <{}, State> {
     const { deleteID } = this.state
     axios({
       method: 'DELETE',
-      url: `${API_URL}/api/point-clouds/${deleteID}`,
+      url: apiURL(`/api/point-clouds/${deleteID}`),
     })
       .then(response => {
         console.log(response)
@@ -65,7 +65,7 @@ export default class BasicTable extends PureComponent <{}, State> {
         <tr key={id}>
           <th className="align-middle">{id}</th>
           <th className="align-middle">{name}</th>
-          <th><Preview url={`http://localhost:8880${url}`}/></th>
+          <th><Preview url={apiURL(url)}/></th>
           <th className="align-middle">
             <ButtonGroup claaria-label="Basic example">
               <Button href={`/clouds/view/${id}`} variant="success">Visualizar</Button>

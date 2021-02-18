@@ -1,8 +1,9 @@
 import React from 'react'
-import { PCDLoader } from "three/examples/jsm/loaders/PCDLoader"
+import {PCDLoader} from "three/examples/jsm/loaders/PCDLoader"
 import BasicScene from "components/BasicScene"
-import { Object3D } from 'three'
+import {Object3D} from 'three'
 import styles from './index.scss'
+import LoadingSpinner from 'components/LoadingSpinner'
 
 type State = {
   activePopover?: 'rotate' | 'scale' | undefined
@@ -11,8 +12,8 @@ type State = {
 }
 
 type Props = {
-    url: string 
-  }
+  url: string
+}
 
 export default class CloudView extends React.PureComponent<Props, State> {
   loader: PCDLoader
@@ -20,7 +21,7 @@ export default class CloudView extends React.PureComponent<Props, State> {
   constructor(props: Props) {
     super(props)
     this.loader = new PCDLoader()
-    this.state = { showAxes: false }
+    this.state = {showAxes: false}
   }
 
   componentDidMount() {
@@ -28,9 +29,9 @@ export default class CloudView extends React.PureComponent<Props, State> {
   }
 
   onLoad = (mesh: Object3D) => {
-      this.setState({ mesh })
-      mesh.scale.set(8,8,8)
-      mesh.translateY(-1)
+    this.setState({mesh})
+    mesh.scale.set(8, 8, 8)
+    mesh.translateY(-1)
   }
 
   onLoadProgress = (xhr: ProgressEvent) => {
@@ -43,15 +44,17 @@ export default class CloudView extends React.PureComponent<Props, State> {
   }
 
   render() {
-    const { activePopover, mesh, showAxes } = this.state
-    if (!mesh) return null
+    const { mesh, showAxes } = this.state
+    if (!mesh) {
+      return <LoadingSpinner small />
+    }
 
     return (
       <div className={styles.page}>
         <div className={styles.viewContent}>
-            <div className={styles.center}>
-                <BasicScene mesh={mesh} width="300px" height="200px" showAxes={showAxes} /> 
-            </div> 
+          <div className={styles.center}>
+            <BasicScene mesh={mesh} width="300px" height="200px" showAxes={showAxes}/>
+          </div>
         </div>
       </div>
     )
