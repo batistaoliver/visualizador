@@ -1,115 +1,114 @@
-import React, { PureComponent, useState } from 'react' 
-import Table from 'react-bootstrap/Table';
+import React, { PureComponent } from 'react'
+import Table from 'react-bootstrap/Table'
 import Button from 'react-bootstrap/Button'
 import ButtonGroup from 'react-bootstrap/ButtonGroup'
-import Preview from 'pages/preview/index';
+import Preview from 'pages/preview/index'
 import Modal from 'react-bootstrap/Modal'
 import axios from 'axios'
+import { API_URL } from 'utils/constants'
 
-const clouds = [
-  { id: 1, name: 'Rabbit', url: '/assets/test-pcds/bunny.pcd'},
-  { id: 2, name: 'happy24', url: '/assets/test-pcds/happy24.pcd'},
-  { id: 3, name: 'owl3_05', url: '/assets/test-pcds/owl3_05.pcd'}
-]
+type State = { clouds: Array<any>; deleteID: string | null }
 
-type State = {clouds: Array<any>;deleteID: string|null}
+export default class BasicTable extends PureComponent <{}, State> {
+  state: State = { clouds: [], deleteID: null }
 
-export default class BasicTable extends PureComponent <{}, State>{
-   state= {clouds:[], deleteID:null}
-
-componentDidMount(){
-   axios({ 
-      url: 'http://localhost:8880/api/point-clouds'
+  componentDidMount() {
+    axios({
+      url: `${API_URL}/api/point-clouds`,
     })
-      .then((response)=>{
-        this.setState({clouds: response.data})
+      .then((response) => {
+        this.setState({ clouds: response.data })
       })
-      .catch((response) =>{
-       console.log(response)
+      .catch((response) => {
+        console.log(response)
       })
-    }
-    submit = () => {
-      console.log(this.state.deleteID)
-      axios({
-         method: 'DELETE',
-         url: 'http://localhost:8880/api/point-clouds/' + this.state.deleteID
-       })
-         .then(function (response) { 
-          console.log(response)
-         })
-         .catch(function (response) {
-          console.log(response)
-         })
-      }
+  }
 
- renderTableHeader() {
-    let header = Object.keys(clouds[0])
-    return header.map((key, index) => {
-       return <th key={index}>{key.toUpperCase()}</th>
+  submit = () => {
+    const { deleteID } = this.state
+    axios({
+      method: 'DELETE',
+      url: `${API_URL}/api/point-clouds/${deleteID}`,
     })
- }
+      .then(response => {
+        console.log(response)
+        this.setState(state => ({
+          clouds: state.clouds.filter(cloud => cloud.id !== deleteID),
+        }), () => {
+          this.hideDeleteModal()
+          alert('Nuvem deletada com sucesso')
+        })
+      })
+      .catch(response => {
+        console.log(response)
+        alert('Erro ao deletar nuvem')
+      })
+  }
 
- renderTableData= () => {
-    return this.state.clouds.map((clouds) => {
-       const { id, name, url } = clouds //destructuring
-       const rota = "/" + id 
-       const rotaEdit = "/edit/" + id
-       return (
-          <tr key={id}>
-             <th className="align-middle">{id}</th>
-             <th className="align-middle">{name}</th>
-             <th><Preview url={"http://localhost:8880" + url}/></th>
-             <th className="align-middle">
-              <ButtonGroup claaria-label="Basic example">
-                <Button href= {rota}  variant="success">Visualizar</Button>
-                <Button href= {rotaEdit} variant="primary">Editar</Button>
-                <Button variant="danger" onClick={() => this.setState({ deleteID: id })}>Deletar</Button>
-              </ButtonGroup>
-             </th> 
-          </tr>
-       )
+  showDeleteModal = (deleteID: string) => this.setState({ deleteID })
+  hideDeleteModal = () => this.setState({ deleteID: null })
+
+  renderTableHeader = () => (
+    <tr id='table-header'>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Preview</th>
+      <th className="color-header">Action</th>
+    </tr>
+  )
+
+  renderTableData = () => {
+    return this.state.clouds.map(cloud => {
+      const { id, name, url } = cloud
+
+      return (
+        <tr key={id}>
+          <th className="align-middle">{id}</th>
+          <th className="align-middle">{name}</th>
+          <th><Preview url={`http://localhost:8880${url}`}/></th>
+          <th className="align-middle">
+            <ButtonGroup claaria-label="Basic example">
+              <Button href={`/clouds/view/${id}`} variant="success">Visualizar</Button>
+              <Button href={`/clouds/edit/${id}`} variant="primary">Editar</Button>
+              <Button variant="danger" onClick={() => this.showDeleteModal(id)}>Deletar</Button>
+            </ButtonGroup>
+          </th>
+        </tr>
+      )
     })
- }
+  }
 
-renderDEleteModal= () => {
- 
-   return (
-     <> 
-       <Modal show={this.state.deleteID!==null}>
-         <Modal.Header>
-           <Modal.Title>Deletar Nuvem</Modal.Title>
-         </Modal.Header>
-         <Modal.Body>Confirma a exclusão?</Modal.Body>
-         <Modal.Footer>
-           <Button variant="secondary" onClick={() => this.setState({ deleteID: null })}>
-             Não
-           </Button>
-           <Button variant="primary" onClick={this.submit}>
-             Sim
-           </Button>
-         </Modal.Footer>
-       </Modal>
-     </>
-   );
- }
- 
- render() {
+  renderDeleteModal = () => (
+    <Modal show={this.state.deleteID !== null}>
+      <Modal.Header>
+        <Modal.Title>Deletar Nuvem</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>Confirma a exclusão?</Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={this.hideDeleteModal}>
+          Não
+        </Button>
+        <Button variant="primary" onClick={this.submit}>
+          Sim
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  )
+
+  render() {
     return (
-       <div>
-          <h1 id='title'>Point Clouds Preview Table</h1>
-          <Table striped bordered hover id='table-clouds'>
-             <tbody>
-                <tr id='table-header'>
-                  {this.renderTableHeader()}
-                  <th className="color-header">ACTION</th>
-                </tr>
-                {this.renderTableData()} 
-             </tbody>
-          </Table>
-          <Button variant="primary" href="/insert">Incluir Nova Nuvem</Button>
-          {this.renderDEleteModal()}
-       </div>
+      <div>
+        <h1 id='title' className="h3">Point Cloud List</h1>
+        <Table striped bordered hover id='table-clouds'>
+          <tbody>
+          {this.renderTableHeader()}
+          {this.renderTableData()}
+          </tbody>
+        </Table>
+        <Button variant="primary" href="/clouds/insert">Incluir Nova Nuvem</Button>
+        {this.renderDeleteModal()}
+      </div>
     )
- }
+  }
 }
 

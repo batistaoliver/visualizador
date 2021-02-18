@@ -9,10 +9,24 @@ type Props = {
   onClose: () => void
   showContent: boolean
 } & Partial<ButtonProps>
-type State = { scale: number[]; individualAxis: boolean }
+
+type State = {
+  individualAxis: boolean
+  initialScale: number[]
+  scale: number[]
+}
 
 export default class ScaleButton extends PureComponent<Props, State> {
-  state = { scale: [1, 1, 1], individualAxis: false }
+  constructor(props: Props) {
+    super(props)
+    this.state = {
+      scale: props.mesh.scale.toArray(),
+      initialScale: props.mesh.scale.toArray(),
+      individualAxis: false
+    }
+
+    console.log('props.mesh.scale.toArray()', props.mesh.scale.toArray());
+  }
 
   onScaleChange = (event: ChangeEvent<any>) => {
     const scale = Number(event.target?.value)
@@ -41,14 +55,19 @@ export default class ScaleButton extends PureComponent<Props, State> {
   }
 
   resetScale = () => {
-    this.setState({scale: [1, 1, 1]})
-    this.props.mesh.scale.set(1, 1, 1)
+    const { initialScale } = this.state
+    const { mesh } = this.props
+
+    this.setState(
+      ({ initialScale }) => ({ scale: initialScale }),
+      () => mesh.scale.fromArray(initialScale)
+    )
   }
 
   toggleIndividualAxis = () => this.setState(state => ({individualAxis: !state.individualAxis}))
 
   renderPopover = () => {
-    const {individualAxis, scale} = this.state
+    const { individualAxis, scale } = this.state
     const rangeInputDefaults = {
       max: '20',
       min: '0.2',

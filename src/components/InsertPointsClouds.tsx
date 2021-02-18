@@ -4,6 +4,7 @@ import Form from 'react-bootstrap/Form'
 import axios from 'axios'
 import { withRouter } from 'react-router-dom'
 import { RouteComponentProps } from 'react-router'
+import {API_URL} from 'utils/constants'
 
 class FormInsert extends PureComponent <RouteComponentProps, { name: string, file: any }>{
     state= {name: "",file:""}
@@ -22,13 +23,12 @@ class FormInsert extends PureComponent <RouteComponentProps, { name: string, fil
 
         axios({
           method: 'post',
-          url: 'http://localhost:8880/api/point-clouds',
+          url: `${API_URL}/api/point-clouds`,
           data: bodyFormData,
           headers: {'Content-Type': 'multipart/form-data'}
         })
           .then(function (response) {
-            history.push('/list')
-            //window.location.href="list"
+            history.push('/clouds')
           })
           .catch(function (response) {
            console.log(response)

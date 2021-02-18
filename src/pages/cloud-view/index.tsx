@@ -6,24 +6,29 @@ import Modal from 'react-bootstrap/Modal'
 import { Object3D } from 'three'
 import ScaleButton from 'components/action-tools/ScaleButton'
 import RotateButton from 'components/action-tools/RotateButton'
-import { ButtonGroup } from 'react-bootstrap'
+import {Button, ButtonGroup} from 'react-bootstrap'
 import styles from './index.scss'
 
 type State = {
   activePopover?: 'rotate' | 'scale' | undefined
   mesh?: Object3D
   showAxes: boolean
+  defaultScale?: number
 }
 
 export default class CloudView extends React.PureComponent<any, State> {
   loader: PCDLoader = new PCDLoader()
-  state: State = { showAxes: false }
+  state: State = { showAxes: false, defaultScale: 3 }
 
   componentDidMount() {
     this.loader.load(this.props.url, this.onLoad, this.onLoadProgress, this.onLoadError)
   }
 
-  onLoad = (mesh: Object3D) => this.setState({ mesh })
+  onLoad = (mesh: Object3D) => {
+    const { defaultScale } = this.state
+    mesh.scale.set(defaultScale, defaultScale, defaultScale)
+    this.setState({ mesh })
+  }
 
   onLoadProgress = (xhr: ProgressEvent) => {
     console.log(Number(xhr.loaded / xhr.total * 100).toFixed(2) + '% loaded')
@@ -35,7 +40,6 @@ export default class CloudView extends React.PureComponent<any, State> {
   }
 
   render() {
-    console.log('this.props.match.params', this.props.match)
     const { activePopover, mesh, showAxes } = this.state
     if (!mesh) return null
 
@@ -44,7 +48,8 @@ export default class CloudView extends React.PureComponent<any, State> {
         <div className={styles.viewContent}>
           <Modal.Dialog className={styles.modalSize}>
             <Modal.Header>
-              <Modal.Title>View Point Clouds</Modal.Title>
+              <Modal.Title>View Point Cloud</Modal.Title>
+              <Button className="float-right btn-sm" children="Voltar" href="/clouds" />
             </Modal.Header>
             <Modal.Body>
               <BasicScene mesh={mesh} width="1065px" height="400px" showAxes={showAxes} />
