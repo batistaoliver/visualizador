@@ -1,4 +1,4 @@
-import React, { ChangeEvent } from 'react'
+import React from 'react'
 import { PCDLoader } from "three/examples/jsm/loaders/PCDLoader"
 import BasicScene from "components/BasicScene"
 import Form from 'react-bootstrap/Form'
@@ -9,25 +9,18 @@ import RotateButton from 'components/action-tools/RotateButton'
 import { ButtonGroup } from 'react-bootstrap'
 import styles from './index.scss'
 
-
 type State = {
   activePopover?: 'rotate' | 'scale' | undefined
   mesh?: Object3D
   showAxes: boolean
 }
 
-export default class CloudView extends React.PureComponent<any, State>  {
-  loader: PCDLoader
-
-  constructor(props: {}) {
-    super(props)
-    this.loader = new PCDLoader()
-    this.state = { showAxes: false }
-  }
+export default class CloudView extends React.PureComponent<any, State> {
+  loader: PCDLoader = new PCDLoader()
+  state: State = { showAxes: false }
 
   componentDidMount() {
     this.loader.load(this.props.url, this.onLoad, this.onLoadProgress, this.onLoadError)
-    console.log(this.props.url +"ok")
   }
 
   onLoad = (mesh: Object3D) => this.setState({ mesh })
@@ -49,37 +42,37 @@ export default class CloudView extends React.PureComponent<any, State>  {
     return (
       <div className={styles.page}>
         <div className={styles.viewContent}>
-        <Modal.Dialog className={styles.modalSize}>
-          <Modal.Header>
-            <Modal.Title>View Point Clouds</Modal.Title>
-          </Modal.Header> 
-          <Modal.Body>
+          <Modal.Dialog className={styles.modalSize}>
+            <Modal.Header>
+              <Modal.Title>View Point Clouds</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
               <BasicScene mesh={mesh} width="1065px" height="400px" showAxes={showAxes} />
-            <Form.Check
-            checked={showAxes}
-            label={<small>Show axes</small>}
-            onChange={() => this.setState(state => ({ showAxes: !state.showAxes }))}
-          />
-          </Modal.Body> 
-          <Modal.Footer>
-          <ButtonGroup className={styles.buttonGroup} >
-            <ScaleButton
-              className={styles.button}
-              mesh={mesh}
-              onClick={() => this.setState({ activePopover: 'scale' })}
-              onClose={() => this.setState({ activePopover: undefined })}
-              showContent={activePopover === 'scale'}
-            />
-            <RotateButton
-              className={styles.button}
-              mesh={mesh}
-              onClick={() => this.setState({ activePopover: 'rotate' })}
-              onClose={() => this.setState({ activePopover: undefined })}
-              showContent={activePopover === 'rotate'}
-            />
-          </ButtonGroup>
-          </Modal.Footer>
-      </Modal.Dialog>
+              <Form.Check
+                checked={showAxes}
+                label={<small>Show axes</small>}
+                onChange={() => this.setState(state => ({ showAxes: !state.showAxes }))}
+              />
+            </Modal.Body>
+            <Modal.Footer>
+              <ButtonGroup className={styles.buttonGroup}>
+                <ScaleButton
+                  className={styles.button}
+                  mesh={mesh}
+                  onClick={() => this.setState({ activePopover: 'scale' })}
+                  onClose={() => this.setState({ activePopover: undefined })}
+                  showContent={activePopover === 'scale'}
+                />
+                <RotateButton
+                  className={styles.button}
+                  mesh={mesh}
+                  onClick={() => this.setState({ activePopover: 'rotate' })}
+                  onClose={() => this.setState({ activePopover: undefined })}
+                  showContent={activePopover === 'rotate'}
+                />
+              </ButtonGroup>
+            </Modal.Footer>
+          </Modal.Dialog>
         </div>
       </div>
     )
