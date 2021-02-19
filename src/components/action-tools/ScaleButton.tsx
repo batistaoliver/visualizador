@@ -24,8 +24,6 @@ export default class ScaleButton extends PureComponent<Props, State> {
       initialScale: props.mesh.scale.toArray(),
       individualAxis: false
     }
-
-    console.log('props.mesh.scale.toArray()', props.mesh.scale.toArray());
   }
 
   onScaleChange = (event: ChangeEvent<any>) => {

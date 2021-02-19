@@ -15,6 +15,8 @@ type Props = {
   url: string
 }
 
+const PREVIEW_SCALE = 6
+
 export default class CloudView extends React.PureComponent<Props, State> {
   loader: PCDLoader
 
@@ -29,9 +31,8 @@ export default class CloudView extends React.PureComponent<Props, State> {
   }
 
   onLoad = (mesh: Object3D) => {
-    this.setState({mesh})
-    mesh.scale.set(8, 8, 8)
-    mesh.translateY(-1)
+    mesh.scale.set(PREVIEW_SCALE, PREVIEW_SCALE, PREVIEW_SCALE)
+    this.setState({ mesh })
   }
 
   onLoadProgress = (xhr: ProgressEvent) => {

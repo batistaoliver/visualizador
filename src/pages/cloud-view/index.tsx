@@ -3,17 +3,16 @@ import { PCDLoader } from "three/examples/jsm/loaders/PCDLoader"
 import BasicScene from "components/BasicScene"
 import Form from 'react-bootstrap/Form'
 import Modal from 'react-bootstrap/Modal'
-import Spinner from 'react-bootstrap/Spinner'
-import { Object3D } from 'three'
+import { Points } from 'three'
 import ScaleButton from 'components/action-tools/ScaleButton'
 import RotateButton from 'components/action-tools/RotateButton'
-import {Button, ButtonGroup} from 'react-bootstrap'
+import { Button, ButtonGroup } from 'react-bootstrap'
 import styles from './index.scss'
 import LoadingSpinner from 'components/LoadingSpinner'
 
 type State = {
   activePopover?: 'rotate' | 'scale' | undefined
-  mesh?: Object3D
+  mesh?: Points
   showAxes: boolean
   isLoading: boolean
 }
@@ -29,7 +28,7 @@ export default class CloudView extends React.PureComponent<any, State> {
     this.loader.load(this.props.url, this.onLoad, this.onLoadProgress, this.onLoadError)
   }
 
-  onLoad = (mesh: Object3D) => {
+  onLoad = (mesh: Points) => {
     mesh.scale.fromArray([DEFAULT_SCALE, DEFAULT_SCALE, DEFAULT_SCALE])
     this.setState({ mesh })
     this.setState({ isLoading: false })

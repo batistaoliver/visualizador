@@ -1,12 +1,13 @@
 import React, { PureComponent } from 'react'
 import * as THREE from 'three'
-import { Object3D, Scene, Camera, Renderer } from 'three'
+import {Points, Scene, Camera, Renderer, Vector3} from 'three'
+import {getMeshCenterPoint} from 'utils'
 
 type Props = {
   width: string,
   height: string,
   onAnimate: Function
-  mesh: Object3D
+  mesh: Points
   showAxes?: boolean
 }
 
@@ -48,7 +49,9 @@ export default class BasicScene extends PureComponent<Props> {
     )
     const renderer = new THREE.WebGLRenderer({ antialias: true })
 
-    camera.position.z = 4
+    camera.position.z = 3
+    this.props.mesh.geometry.center()
+
     scene.add(this.props.mesh)
     renderer.setClearColor('#000000')
     renderer.setSize(width, height)
