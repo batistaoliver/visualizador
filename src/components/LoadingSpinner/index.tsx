@@ -6,7 +6,7 @@ type Props = { label?: string; small?: boolean }
 
 const LoadingSpinner = ({ label, small }: Props) => {
   return (
-    <div className={styles.loading}>
+    <div className={`${styles.loading} ${small ? styles.sm : ''}`}>
       <Spinner animation="border" role="status" size={small ? 'sm' : undefined} />
       {label && <span className={small ? 'h5' : 'h3'}>{label}</span>}
     </div>

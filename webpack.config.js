@@ -12,7 +12,7 @@ module.exports = {
   },
   devServer: {
     contentBase: './dist',
-    port: 3000,
+    port: process.env.WEBPACK_PORT || 3000,
     historyApiFallback: true
   },
   module: {

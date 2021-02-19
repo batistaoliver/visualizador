@@ -1,18 +1,31 @@
 .viewContent {
-    width: 100%;
-    max-width: 50rem;
-    margin: 0 auto;
-  }
-  
-  .page {
-    margin: 2rem;
-  }
-  
-  .buttonGroup {
-    margin-top: 1rem;
-    margin-bottom: 0.75rem;
-  }
-  
-  .button:not(:last-child) {
-    margin-right: 0.5rem;
-  }
+  width: 100%;
+  max-width: 50rem;
+  margin: 0 auto;
+}
+
+.page {
+  margin: 2rem auto;
+  max-width: 100rem;
+}
+
+.buttonGroup {
+  margin-top: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.actionBtn:not(:last-child) {
+  margin-right: 0.5rem;
+}
+
+.includeBtn {
+  float: right;
+}
+
+.previewCol {
+  width: 7.5rem;
+}
+
+.actionCol {
+  width: 24rem;
+}

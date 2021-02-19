@@ -15,13 +15,14 @@ type State = {
   mesh?: Points
   showAxes: boolean
   isLoading: boolean
+  mouseInteraction: boolean
 }
 
 const DEFAULT_SCALE = 3
 
 export default class CloudView extends React.PureComponent<any, State> {
   loader: PCDLoader = new PCDLoader()
-  state: State = { showAxes: false, isLoading: false }
+  state: State = { showAxes: false, isLoading: false, mouseInteraction: false }
 
   componentDidMount() {
     this.setState({ isLoading: true })
@@ -45,7 +46,7 @@ export default class CloudView extends React.PureComponent<any, State> {
   }
 
   render() {
-    const { activePopover, isLoading, mesh, showAxes } = this.state
+    const { activePopover, isLoading, mesh, mouseInteraction, showAxes } = this.state
 
     if (isLoading) {
       return <LoadingSpinner label="Loading..." />
@@ -62,12 +63,25 @@ export default class CloudView extends React.PureComponent<any, State> {
               <Button className="float-right btn-sm" children="Voltar" href="/clouds" />
             </Modal.Header>
             <Modal.Body>
-              <BasicScene mesh={mesh} width="1065px" height="400px" showAxes={showAxes} />
-              <Form.Check
-                checked={showAxes}
-                label={<small>Show axes</small>}
-                onChange={() => this.setState(state => ({ showAxes: !state.showAxes }))}
+              <BasicScene
+                mesh={mesh}
+                width="1065px"
+                height="400px"
+                showAxes={showAxes}
+                mouseInteraction={mouseInteraction}
               />
+              <Form.Row className={styles.checkboxes}>
+                <Form.Check
+                  checked={showAxes}
+                  label={<small>Show axes</small>}
+                  onChange={() => this.setState(state => ({ showAxes: !state.showAxes }))}
+                />
+                <Form.Check
+                  checked={mouseInteraction}
+                  label={<small>Enable Mouse Camera Control</small>}
+                  onChange={() => this.setState(state => ({ mouseInteraction: !state.mouseInteraction }))}
+                />
+              </Form.Row>
             </Modal.Body>
             <Modal.Footer>
               <ButtonGroup className={styles.buttonGroup}>

@@ -5,3 +5,11 @@ declare module '*.scss' {
   const classNames: IClassNames
   export = classNames
 }
+
+type Cloud = {
+  id: string
+  name: string
+  url: string
+}
+
+type Nullable<T> = T | null
