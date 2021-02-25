@@ -6,7 +6,7 @@ import {
   Renderer,
   Scene,
 } from 'three'
-import { assembleScene, applyOrbitControls, initialCameraPosition } from 'components/BasicScene/util'
+import { assembleScene, applyOrbitControls } from 'components/BasicScene/util'
 
 type Props = {
   getScene?: (scene: Scene) => void

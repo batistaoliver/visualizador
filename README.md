@@ -5,3 +5,4 @@
 yarn install;
 yarn start;
 ```
+Visit `http://localhost:3010`

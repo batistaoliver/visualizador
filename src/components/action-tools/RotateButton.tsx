@@ -1,18 +1,19 @@
-import React, {ChangeEvent, PureComponent} from 'react'
-import { Button, ButtonProps, OverlayTrigger, Popover } from 'react-bootstrap'
-import Form from 'react-bootstrap/esm/Form'
-import {Object3D, Vector3} from 'three'
+import React, { ChangeEvent, PureComponent } from 'react'
+import { Button, Form, OverlayTrigger, Popover } from 'react-bootstrap'
+import { isEqual } from 'lodash'
+import { ActionBtnProps } from './common'
 import styles from './action-tools.scss'
 
-type Props = {
-  mesh: Object3D
-  onClose: () => void
-  showContent: boolean
-} & Partial<ButtonProps>
 type State = { angles: number[] }
 
-export default class RotateButton extends PureComponent<Props, State> {
+export default class RotateButton extends PureComponent<ActionBtnProps, State> {
   state = { angles: [0, 0, 0] }
+
+  componentDidUpdate(_: Readonly<ActionBtnProps>, prevState: Readonly<State>) {
+    if (!isEqual(prevState, this.state)) {
+      this.props.onUpdate()
+    }
+  }
 
   onRotationChange = (event: ChangeEvent<any>) => {
     if (event.target?.value === undefined) return
@@ -48,7 +49,7 @@ export default class RotateButton extends PureComponent<Props, State> {
         <Popover.Title as="h3">Rotate</Popover.Title>
         <Popover.Content>
           <Form.Group>
-            <Form.Row>
+            <Form.Row className={styles.formRow}>
               <span className={styles.axisLabel}>X</span>
               <Form.Control
                 className={styles.formControl}
@@ -56,9 +57,11 @@ export default class RotateButton extends PureComponent<Props, State> {
                 onChange={this.onRotationChange}
                 value={angles[0]}
                 type="number"
+                min="-360"
+                max="360"
               />
             </Form.Row>
-            <Form.Row>
+            <Form.Row className={styles.formRow}>
               <span className={styles.axisLabel}>Y</span>
               <Form.Control
                 className={styles.formControl}
@@ -66,9 +69,11 @@ export default class RotateButton extends PureComponent<Props, State> {
                 onChange={this.onRotationChange}
                 value={angles[1]}
                 type="number"
+                min="-360"
+                max="360"
               />
             </Form.Row>
-            <Form.Row>
+            <Form.Row className={styles.formRow}>
               <span className={styles.axisLabel}>Z</span>
               <Form.Control
                 className={styles.formControl}
@@ -76,6 +81,8 @@ export default class RotateButton extends PureComponent<Props, State> {
                 onChange={this.onRotationChange}
                 value={angles[2]}
                 type="number"
+                min="-360"
+                max="360"
               />
             </Form.Row>
           </Form.Group>
@@ -99,7 +106,7 @@ export default class RotateButton extends PureComponent<Props, State> {
   }
 
   render() {
-    const { mesh, showContent, ...buttonProps } = this.props
+    const { mesh, onUpdate, showContent, ...buttonProps } = this.props
 
     return (
       <OverlayTrigger placement="right" show={showContent} overlay={this.renderPopover()}>

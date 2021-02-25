@@ -1,14 +1,8 @@
-import React, {ChangeEvent, PureComponent} from 'react'
-import { Button, ButtonProps, OverlayTrigger, Popover } from 'react-bootstrap'
-import Form from 'react-bootstrap/esm/Form'
-import { Object3D } from 'three'
+import React, { ChangeEvent, PureComponent } from 'react'
+import { Button, Form, OverlayTrigger, Popover } from 'react-bootstrap'
+import { isEqual } from 'lodash'
+import { ActionBtnProps } from './common'
 import styles from './action-tools.scss'
-
-type Props = {
-  mesh: Object3D
-  onClose: () => void
-  showContent: boolean
-} & Partial<ButtonProps>
 
 type State = {
   individualAxis: boolean
@@ -16,8 +10,15 @@ type State = {
   scale: number[]
 }
 
-export default class ScaleButton extends PureComponent<Props, State> {
-  constructor(props: Props) {
+const rangeInputDefaults = {
+  max: '20',
+  min: '0.2',
+  step: '0.2',
+  type: 'range',
+}
+
+export default class ScaleButton extends PureComponent<ActionBtnProps, State> {
+  constructor(props: ActionBtnProps) {
     super(props)
     this.state = {
       scale: props.mesh.scale.toArray(),
@@ -26,27 +27,35 @@ export default class ScaleButton extends PureComponent<Props, State> {
     }
   }
 
+  componentDidUpdate(_: Readonly<ActionBtnProps>, prevState: Readonly<State>) {
+    if (!isEqual(prevState.scale, this.state.scale)) {
+      this.props.onUpdate()
+    }
+  }
+
   onScaleChange = (event: ChangeEvent<any>) => {
     const scale = Number(event.target?.value)
+    const { mesh } = this.props
+
     if (scale === 1 || scale === 0) return
 
     if (!this.state.individualAxis) {
-      this.props.mesh.scale.set(scale, scale, scale)
+      mesh.scale.set(scale, scale, scale)
       this.setState({ scale: [scale, scale, scale] })
       return
     }
 
     switch (event.target.id) {
       case 'ScaleRangeXOrAll':
-        this.props.mesh.scale.setX(scale)
+        mesh.scale.setX(scale)
         this.setState(state => ({ scale: [scale, state.scale[1], state.scale[2]] }))
         break
       case 'ScaleRangeY':
-        this.props.mesh.scale.setY(scale)
+        mesh.scale.setY(scale)
         this.setState(state => ({ scale: [state.scale[0], scale, state.scale[2]] }))
         break
       case 'ScaleRangeZ':
-        this.props.mesh.scale.setZ(scale)
+        mesh.scale.setZ(scale)
         this.setState(state => ({ scale: [state.scale[0], state.scale[1], scale] }))
         break
     }
@@ -66,12 +75,6 @@ export default class ScaleButton extends PureComponent<Props, State> {
 
   renderPopover = () => {
     const { individualAxis, scale } = this.state
-    const rangeInputDefaults = {
-      max: '20',
-      min: '0.2',
-      step: '0.2',
-      type: 'range',
-    }
 
     return (
       <Popover id="scaleButtonPopover">
@@ -141,7 +144,7 @@ export default class ScaleButton extends PureComponent<Props, State> {
   }
 
   render() {
-    const {mesh, showContent, ...buttonProps} = this.props
+    const {mesh, onUpdate, showContent, ...buttonProps} = this.props
 
     return (
       <OverlayTrigger placement="right" show={showContent} overlay={this.renderPopover()}>
