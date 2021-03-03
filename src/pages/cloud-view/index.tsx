@@ -22,7 +22,7 @@ type State = {
   showOriginalCopy: boolean
 }
 
-const DEFAULT_SCALE = 3
+const DEFAULT_SCALE = 4
 
 export default class CloudView extends React.PureComponent<any, State> {
   loader: PCDLoader = new PCDLoader()

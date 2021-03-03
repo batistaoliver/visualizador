@@ -39,7 +39,7 @@
     "webpack-dev-server": "3.8.0"
   },
   "scripts": {
-    "start": "WEBPACK_PORT=3010 webpack-dev-server --mode development",
+    "start": "webpack-dev-server --mode development",
     "build": "webpack",
     "tsc": "tsc"
   }
