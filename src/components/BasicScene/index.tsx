@@ -55,7 +55,7 @@ export default class BasicScene extends PureComponent<Props> {
 
     onAnimate && this.startAnimation()
     getScene && getScene(this.scene)
-    mouseInteraction && applyOrbitControls(camera, renderer)
+    mouseInteraction && this.enableMouseInteraction(camera, renderer)
   }
 
   componentWillUnmount() {
