@@ -7,13 +7,17 @@ import ButtonGroup from 'react-bootstrap/ButtonGroup'
 import Button from 'react-bootstrap/Button'
 import Modal from 'react-bootstrap/Modal'
 import Table from 'react-bootstrap/Table'
+import {
+  Trash as TrashIcon,
+  Pencil as PencilIcon,
+} from 'react-bootstrap-icons'
 
 type State = {
   clouds: Cloud[]
   deleteID: Nullable<string>
 }
 
-export default class Main extends React.PureComponent {
+export default class CloudList extends React.PureComponent {
   state: State = { clouds: [], deleteID: null }
 
   componentDidMount() {
@@ -77,10 +81,9 @@ export default class Main extends React.PureComponent {
 
   renderTableHeader = () => (
     <tr id='table-header'>
-      <th>ID</th>
       <th>Name</th>
       <th className={styles.previewCol}>Preview</th>
-      <th className={styles.actionCol}>Action</th>
+      <th className={styles.actionCol} />
     </tr>
   )
 
@@ -90,21 +93,21 @@ export default class Main extends React.PureComponent {
 
       return (
         <tr key={id}>
-          <td className="align-middle">{id}</td>
-          <td className="align-middle">{name}</td>
+          <td className="align-middle">
+            <Button className={styles.cloudTdLink} href={`/clouds/view/${id}`} variant="link" size="sm">
+              {name}
+            </Button>
+          </td>
           <td>
             <Preview url={apiURL(url)}/>
           </td>
           <td className="align-middle">
             <ButtonGroup claaria-label="Basic example">
-              <Button className={styles.actionBtn} href={`/clouds/view/${id}`} variant="success" size="sm">
-                Visualizar
+              <Button className={styles.actionBtn} href={`/clouds/edit/${id}`} variant="link" size="sm" title="Click to view">
+                <PencilIcon />
               </Button>
-              <Button className={styles.actionBtn} href={`/clouds/edit/${id}`} variant="primary" size="sm">
-                Editar
-              </Button>
-              <Button className={styles.actionBtn} variant="danger" onClick={() => this.showDeleteModal(id)} size="sm">
-                Deletar
+              <Button className={styles.actionBtn} variant="link" onClick={() => this.showDeleteModal(id)} size="sm">
+                <TrashIcon />
               </Button>
             </ButtonGroup>
           </td>

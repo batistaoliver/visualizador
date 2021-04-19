@@ -1,41 +1,49 @@
-import React from 'react'
+import React, { RefObject, createRef } from 'react'
+import axios from 'axios'
 import { Points, Scene, MeshBasicMaterial } from 'three'
 import { PCDLoader } from 'three/examples/jsm/loaders/PCDLoader'
-import { Button, ButtonGroup } from 'react-bootstrap'
+import { Button } from 'react-bootstrap'
 import BasicScene from "components/BasicScene"
-import Form from 'react-bootstrap/Form'
-import Modal from 'react-bootstrap/Modal'
-import ScaleButton from 'components/action-tools/ScaleButton'
-import RotateButton from 'components/action-tools/RotateButton'
 import LoadingSpinner from 'components/LoadingSpinner'
+import SceneControls from 'pages/cloud-view/SceneControls'
+import { apiURL } from 'utils'
 import styles from './index.scss'
-import TranslateButton from 'components/action-tools/TranslateButton'
 
 type State = {
-  activePopover?: 'rotate' | 'scale' | 'translate'
   isLoading: boolean
   mesh?: Points
   meshCopy?: Points
-  mouseInteraction: boolean
   scene?: Scene
+  mouseInteraction: boolean
   showAxes: boolean
   showOriginalCopy: boolean
 }
 
+type Props = {
+  match: { params: { id: number } }
+}
+
 const DEFAULT_SCALE = 4
 
-export default class CloudView extends React.PureComponent<any, State> {
+export default class CloudView extends React.PureComponent<Props, State> {
   loader: PCDLoader = new PCDLoader()
   state: State = {
-    showAxes: true,
     isLoading: false,
-    mouseInteraction: true,
+    mouseInteraction: false,
+    showAxes: true,
     showOriginalCopy: false,
   }
 
+  sceneContainer: RefObject<HTMLDivElement> = createRef()
+
   componentDidMount() {
     this.setState({ isLoading: true })
-    this.loader.load(this.props.url, this.onLoad, this.onLoadProgress, this.onLoadError)
+    axios({
+      method: 'get',
+      url: apiURL(`/api/point-clouds/${this.props.match.params.id}`),
+    }).then((response) => {
+      this.loader.load(apiURL(response.data.url), this.onLoad, this.onLoadProgress, this.onLoadError)
+    })
   }
 
   onLoad = (mesh: Points) => {
@@ -44,8 +52,12 @@ export default class CloudView extends React.PureComponent<any, State> {
       mesh,
       meshCopy: mesh.clone(),
     }, () => {
-      this.state.mesh.material = new MeshBasicMaterial( { color: 0xF76E6E, wireframe: true } );
-      this.state.meshCopy.material = new MeshBasicMaterial( { color: 0xAAAAAA, wireframe: true } );
+      try {
+        this.state.mesh.material = new MeshBasicMaterial({color: 0xF76E6E, wireframe: true})
+        this.state.meshCopy.material = new MeshBasicMaterial({color: 0xAAAAAA, wireframe: true})
+      } catch(e) {
+        console.warn(e)
+      }
     })
     this.setState({ isLoading: false })
   }
@@ -62,6 +74,18 @@ export default class CloudView extends React.PureComponent<any, State> {
 
   sceneGetter = (scene: Scene) => {
     this.setState({ scene })
+  }
+
+  onControlChange = (controls: Pick<State, 'showAxes' | 'mouseInteraction' | 'showOriginalCopy'>) => {
+    const { meshCopy, scene, showOriginalCopy } = this.state
+
+    if (controls.showOriginalCopy && showOriginalCopy !== controls.showOriginalCopy) {
+      scene.add(meshCopy)
+    } else if (showOriginalCopy !== controls.showOriginalCopy) {
+      scene.remove(meshCopy)
+    }
+
+    this.setState({ ...controls })
   }
 
   renderChangesViewer = () => {
@@ -81,97 +105,56 @@ export default class CloudView extends React.PureComponent<any, State> {
 
   rerender = () => this.forceUpdate()
 
-  toggleShowOriginalCopy = () => this.setState(state => ({ showOriginalCopy: !state.showOriginalCopy }), () => {
-    const { meshCopy, scene, showOriginalCopy } = this.state
-
-    if (showOriginalCopy) {
-      scene.add(meshCopy)
-    } else {
-      scene.remove(meshCopy)
-    }
+  getSceneDimensions = () => ({
+    height: `${this.sceneContainer.current.offsetHeight}px`,
+    width: `${this.sceneContainer.current.offsetWidth}px`,
   })
 
-  render() {
+  renderSceneContainer = () => {
     const {
-      activePopover,
       isLoading,
       mesh,
-      mouseInteraction,
-      showAxes,
-      showOriginalCopy,
     } = this.state
+    const { mouseInteraction, showAxes } = this.state
+    const shouldRenderScene = mesh && this.sceneContainer.current && !isLoading
 
-    if (isLoading) {
-      return <LoadingSpinner label="Loading..." />
-    }
+    return (
+      <div className={styles.sceneContainer} ref={this.sceneContainer}>
+        {isLoading && <LoadingSpinner label="Loading..." />}
+        {shouldRenderScene && (
+          <>
+            <BasicScene
+              mesh={mesh}
+              showAxes={showAxes}
+              mouseInteraction={mouseInteraction}
+              getScene={this.sceneGetter}
+              {...this.getSceneDimensions()}
+            />
+            {this.renderChangesViewer()}
+          </>
+        )}
+      </div>
+    )
+  }
 
-    if (!mesh) return null
+  render() {
+    const { mesh } = this.state
 
     return (
       <div className={styles.page}>
-        <div className={styles.viewContent}>
-          <Modal.Dialog className={styles.modalSize}>
-            <Modal.Header>
-              <Modal.Title>View Point Cloud</Modal.Title>
-              <Button className="float-right btn-sm" children="Voltar" href="/clouds" />
-            </Modal.Header>
-            <Modal.Body className={styles.body}>
-              <BasicScene
-                mesh={mesh}
-                width="65rem"
-                height="27rem"
-                showAxes={showAxes}
-                mouseInteraction={mouseInteraction}
-                getScene={this.sceneGetter}
-              />
-              {this.renderChangesViewer()}
-            </Modal.Body>
-            <Modal.Footer className={styles.footer}>
-              <Form.Row className={styles.checkboxes}>
-                <Form.Check
-                  checked={showAxes}
-                  label={<small>Show axes</small>}
-                  onChange={() => this.setState(state => ({ showAxes: !state.showAxes }))}
-                />
-                <Form.Check
-                  checked={mouseInteraction}
-                  label={<small>Enable Mouse Camera Control</small>}
-                  onChange={() => this.setState(state => ({ mouseInteraction: !state.mouseInteraction }))}
-                />
-                <Form.Check
-                  checked={showOriginalCopy}
-                  label={<small>Show Original Copy</small>}
-                  onChange={this.toggleShowOriginalCopy}
-                />
-              </Form.Row>
-              <ButtonGroup className={styles.buttonGroup}>
-                <ScaleButton
-                  className={styles.button}
-                  mesh={mesh}
-                  onClick={() => this.setState({ activePopover: 'scale' })}
-                  onClose={() => this.setState({ activePopover: undefined })}
-                  onUpdate={this.rerender}
-                  showContent={activePopover === 'scale'}
-                />
-                <RotateButton
-                  className={styles.button}
-                  mesh={mesh}
-                  onClick={() => this.setState({ activePopover: 'rotate' })}
-                  onClose={() => this.setState({ activePopover: undefined })}
-                  onUpdate={this.rerender}
-                  showContent={activePopover === 'rotate'}
-                />
-                <TranslateButton
-                  className={styles.button}
-                  mesh={mesh}
-                  onClick={() => this.setState({ activePopover: 'translate' })}
-                  onClose={() => this.setState({ activePopover: undefined })}
-                  onUpdate={this.rerender}
-                  showContent={activePopover === 'translate'}
-                />
-              </ButtonGroup>
-            </Modal.Footer>
-          </Modal.Dialog>
+        <header>
+          <h1 className={styles.h1}>View Point Cloud</h1>
+          <Button className="float-right btn-sm" children="Voltar" href="/clouds" />
+        </header>
+        {this.renderSceneContainer()}
+        <div className={styles.footer}>
+          {mesh && (
+            <SceneControls
+              mesh={mesh}
+              onUpdate={this.rerender}
+              onChange={this.onControlChange}
+            />
+          )}
         </div>
       </div>
     )
