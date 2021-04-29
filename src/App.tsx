@@ -12,6 +12,7 @@ const CloudList = lazy(() => import('pages/cloud-list'))
 const CloudView = lazy(() => import('pages/cloud-view'))
 const CloudInsert = lazy(() => import('pages/cloud-insert'))
 const CloudEdit = lazy(() => import('pages/cloud-edit'))
+const Login = lazy(() => import('pages/Login'))
 
 class App extends Component {
   render() {
@@ -24,6 +25,7 @@ class App extends Component {
             <Route path="/clouds/insert" component={CloudInsert} />
             <Route path="/clouds/view/:id" component={CloudView} />
             <Route path="/clouds/edit/:id" component={CloudEdit} />
+            <Route path="/login" component={Login} />
             <Route path="/" exact>
               <Redirect to="/clouds/list" />
             </Route>
