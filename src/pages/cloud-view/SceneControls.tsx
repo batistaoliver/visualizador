@@ -15,7 +15,7 @@ type State = {
 }
 
 type Props = {
-  mesh: Points
+  mesh?: Points
   onUpdate: () => void
   onChange: (controls: Omit<State, 'activePopover'>) => void
 }

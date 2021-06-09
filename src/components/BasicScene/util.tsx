@@ -1,9 +1,10 @@
 import { PerspectiveCamera, Points, Renderer, Scene, WebGLRenderer } from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls' 
 
 export const initialCameraPosition = [0, 0, 3]
 
-export const assembleScene = (element: HTMLElement, mesh: Points) => {
+export const assembleScene = (element: HTMLElement, mesh?: Points) => {
+
   const width = element.clientWidth
   const height = element.clientHeight
 
@@ -17,9 +18,12 @@ export const assembleScene = (element: HTMLElement, mesh: Points) => {
   const renderer = new WebGLRenderer({ antialias: true })
 
   camera.position.fromArray(initialCameraPosition)
-  mesh.geometry.center()
+      
+  if (mesh){
+    mesh.geometry.center() 
+    scene.add(mesh) 
+  }  
 
-  scene.add(mesh)
   renderer.setClearColor('#000000')
   renderer.setSize(width, height)
 

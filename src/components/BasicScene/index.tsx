@@ -11,11 +11,13 @@ import { assembleScene, applyOrbitControls } from 'components/BasicScene/util'
 type Props = {
   getScene?: (scene: Scene) => void
   height: string,
-  mesh: Points
+  mesh?: Points
   onAnimate: Function
   showAxes?: boolean
   width: string
   mouseInteraction?: boolean
+  getCamera?: (camera: PerspectiveCamera) => void
+  getRenderer?: (renderer: Renderer) => void
 }
 
 export default class BasicScene extends PureComponent<Props> {
@@ -42,12 +44,20 @@ export default class BasicScene extends PureComponent<Props> {
   }
 
   componentDidMount() {
-    const { mouseInteraction, getScene, showAxes, mesh, onAnimate } = this.props
+    const { mouseInteraction, getScene, showAxes, mesh, onAnimate, getCamera, getRenderer } = this.props
     const { scene, camera, renderer } = assembleScene(this.mount, mesh)
 
     this.scene = scene
     this.camera = camera
     this.renderer = renderer
+
+    if (getCamera){
+      getCamera(camera) 
+    }
+
+    if (getRenderer){
+      getRenderer(renderer) 
+    }
 
     if (showAxes) {
       this.scene.add(this.axesHelper)
