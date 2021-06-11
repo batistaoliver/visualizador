@@ -42,6 +42,7 @@ type State = {
   deleteID: Nullable<string>
   camera?: PerspectiveCamera
   renderer?: Renderer
+  ControlObjetctSelect: TransformControls
 
 }
 
@@ -61,7 +62,8 @@ export default class CloudView extends React.PureComponent<Props, State> {
     showOriginalCopy: false,
     clouds: [],
     deleteID: null,
-    meshList:[]
+    meshList:[],
+    ControlObjetctSelect: null
   }
   loader: PCDLoader = new PCDLoader()
   mount: HTMLDivElement
@@ -254,7 +256,10 @@ export default class CloudView extends React.PureComponent<Props, State> {
             </Table>
             <Button className={styles.includeBtn} variant="primary" href="/clouds/insert" size="sm">
                 Insert New
-              </Button>
+            </Button>
+            <Button className={styles.includeBtn} variant="primary" onClick={() => this.deleteMeshScene(meshSelect)} size="sm">
+                Delete
+            </Button>
               {this.renderDeleteModal()}
           </Col>
           <Col xs={10}>
@@ -350,12 +355,11 @@ export default class CloudView extends React.PureComponent<Props, State> {
       //Controlador para cada nuvem
       const tc = new TransformControls(this.state.camera, this.state.renderer.domElement)
       tc.attach(mesh)
-      scene.add(tc)
-      //tc.size = 1
-      tc.setSize(0.5)
+      scene.add(tc) 
+      tc.setSize(0.5) 
+      this.setState({ ControlObjetctSelect: tc  });
 
       var stringData = JSON.stringify(mesh.toJSON() );
-      console.log(stringData)
 
       //configuração dos modos do controlador
       window.addEventListener('keydown', function(event) {
@@ -376,7 +380,8 @@ export default class CloudView extends React.PureComponent<Props, State> {
     }) 
 
     tc.addEventListener('mouseDown', () => {
-      this.setState({ meshSelect: mesh });   
+      //Salva a seleção atual em estado
+      this.setState({ meshSelect: mesh, ControlObjetctSelect: tc  }); 
     });
 
     tc.addEventListener('mouseUp', () => { 
@@ -421,7 +426,23 @@ cloudMeshToCloudObj = (mesh) => {
 
   return cloudObj; 
 }
- 
+
+deleteMeshScene = (mesh: Points) => {
+  const{scene, ControlObjetctSelect, meshList} = this.state 
+  //remove o controlador da nuvem
+  ControlObjetctSelect.detach();
+  scene.remove(ControlObjetctSelect)
+
+  //Remove a nuvem da lista de nuvens
+  for( var i = 0; i < meshList.length; i++){ 
+    
+    if ( meshList[i].uuid === mesh.uuid) { 
+
+          meshList.splice(i, 1); 
+    } 
+  }
+  scene.remove(mesh) 
+}
 }
 
 
