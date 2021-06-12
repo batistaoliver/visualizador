@@ -43,6 +43,7 @@ type State = {
   camera?: PerspectiveCamera
   renderer?: Renderer
   ControlObjetctSelect: TransformControls
+  ControlObjetctList?: TransformControls[]
 
 }
 
@@ -63,7 +64,8 @@ export default class CloudView extends React.PureComponent<Props, State> {
     clouds: [],
     deleteID: null,
     meshList:[],
-    ControlObjetctSelect: null
+    ControlObjetctSelect: null,
+    ControlObjetctList:[]
   }
   loader: PCDLoader = new PCDLoader()
   mount: HTMLDivElement
@@ -341,7 +343,7 @@ export default class CloudView extends React.PureComponent<Props, State> {
   addCloudScena = (mesh: Points) => {
 
       //Adiciona a nuvem no centro da cena
-      const { scene, meshList, camera} = this.state
+      const { scene, meshList, camera, ControlObjetctSelect, ControlObjetctList} = this.state
       mesh.geometry.center()
       scene.add(mesh)
   
@@ -360,7 +362,8 @@ export default class CloudView extends React.PureComponent<Props, State> {
       tc.attach(mesh)
       scene.add(tc) 
       tc.setSize(0.5) 
-      this.setState({ ControlObjetctSelect: tc  });
+      this.setState({ ControlObjetctSelect: tc  }); 
+      ControlObjetctList.push(tc);
 
       var stringData = JSON.stringify(mesh.toJSON() );
 
@@ -385,11 +388,17 @@ export default class CloudView extends React.PureComponent<Props, State> {
     tc.addEventListener('mouseDown', () => {
       //Salva a seleção atual em estado
       this.setState({ meshSelect: mesh, ControlObjetctSelect: tc  }); 
+       
+      //Destaca o objeto selecionado
+      for( var i = 0; i < meshList.length; i++){
+        ControlObjetctList[i].setSize(0.3)
+      }
+      tc.setSize(1)
     });
 
     tc.addEventListener('mouseUp', () => { 
-      this.forceUpdate() 
-    });
+      this.forceUpdate()   
+    }); 
     
 }
 
