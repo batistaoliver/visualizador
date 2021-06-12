@@ -1,6 +1,6 @@
 import React, { RefObject, createRef } from 'react'
 import axios from 'axios'
-import { Points, Scene, MeshBasicMaterial, PerspectiveCamera, Renderer, GridHelper} from 'three'
+import { Points, Scene, MeshBasicMaterial, PerspectiveCamera, Renderer, GridHelper, Vector3} from 'three'
 import { PCDLoader } from 'three/examples/jsm/loaders/PCDLoader' 
 import { Button } from 'react-bootstrap'
 import BasicScene from "components/BasicScene"
@@ -164,11 +164,11 @@ export default class CloudView extends React.PureComponent<Props, State> {
   }
 
   sceneGetter = (scene: Scene) => {
-    this.setState({ scene })
+    this.setState({ scene }) 
   }
 
   cameraGetter = (camera: PerspectiveCamera) => {
-    this.setState({ camera })
+    this.setState({ camera })  
   }
 
   rendererGetter = (renderer: Renderer) => {
@@ -231,6 +231,8 @@ export default class CloudView extends React.PureComponent<Props, State> {
               getRenderer={this.rendererGetter}
             />
             {this.renderChangesViewer()}
+            {this.insertGridHelper()}
+            {this.inclinacaoPerspectiveCamera()}
           </>
         )}
       </div>
@@ -387,17 +389,7 @@ export default class CloudView extends React.PureComponent<Props, State> {
     tc.addEventListener('mouseUp', () => { 
       this.forceUpdate() 
     });
-    
-    if(meshList.length == 1){
-      //Adicionar GridHelper
-      const size = 10;
-      const divisions = 10;
-      const gridHelper = new GridHelper( size, divisions, 0x888888, 0x444444);
-      scene.add( gridHelper );
-      console.log("gridHelper")
-    }
-    
-   
+     
 }
 
 /**
@@ -443,6 +435,28 @@ deleteMeshScene = (mesh: Points) => {
   }
   scene.remove(mesh) 
 }
+
+inclinacaoPerspectiveCamera = () => {
+  const {camera} = this.state
+
+  if(camera){
+    camera.position.set( 0,1,2.5);
+    camera.lookAt(new Vector3(0,0,0));
+  } 
+}
+
+insertGridHelper = () => {
+  const {scene} = this.state 
+  
+  if(scene){
+    const size = 8;
+    const divisions = 12;
+    const gridHelper = new GridHelper( size, divisions, 0x888888, 0x444444);
+    scene.add( gridHelper );
+  }
+  
+}
+
 }
 
 
