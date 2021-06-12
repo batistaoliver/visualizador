@@ -233,6 +233,7 @@ export default class CloudView extends React.PureComponent<Props, State> {
             {this.renderChangesViewer()}
             {this.insertGridHelper()}
             {this.inclinacaoPerspectiveCamera()}
+            {this.informationsTransformControl()}
           </>
         )}
       </div>
@@ -389,7 +390,7 @@ export default class CloudView extends React.PureComponent<Props, State> {
     tc.addEventListener('mouseUp', () => { 
       this.forceUpdate() 
     });
-     
+    
 }
 
 /**
@@ -433,7 +434,7 @@ deleteMeshScene = (mesh: Points) => {
           meshList.splice(i, 1); 
     } 
   }
-  scene.remove(mesh) 
+  scene.remove(mesh)  
 }
 
 inclinacaoPerspectiveCamera = () => {
@@ -455,6 +456,14 @@ insertGridHelper = () => {
     scene.add( gridHelper );
   }
   
+}
+
+informationsTransformControl = () => {  
+    return (
+      <div className={styles.informationsTransformControl}>
+        Eixos Objeto: "T" translate | "R" rotate | "S" scale
+      </div>
+    )  
 }
 
 }
