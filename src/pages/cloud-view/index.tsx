@@ -44,6 +44,7 @@ type State = {
   renderer?: Renderer
   ControlObjetctSelect: TransformControls
   ControlObjetctList?: TransformControls[]
+  gui: GUI;
 
 }
 
@@ -65,7 +66,8 @@ export default class CloudView extends React.PureComponent<Props, State> {
     deleteID: null,
     meshList:[],
     ControlObjetctSelect: null,
-    ControlObjetctList:[]
+    ControlObjetctList:[],
+    gui: null
   }
   loader: PCDLoader = new PCDLoader()
   mount: HTMLDivElement
@@ -343,20 +345,25 @@ export default class CloudView extends React.PureComponent<Props, State> {
   addCloudScena = (mesh: Points) => {
 
       //Adiciona a nuvem no centro da cena
-      const { scene, meshList, camera, ControlObjetctSelect, ControlObjetctList} = this.state
+      const { scene, meshList, camera, ControlObjetctSelect, ControlObjetctList, meshSelect} = this.state
       mesh.geometry.center()
       scene.add(mesh)
   
       //Preenchendo a lista de nuvens de pontos
       meshList.push(mesh)
+ 
 
       //Controles de cor e de tamanho da nuvem
-      const gui = new GUI();
-      var fileCounter = 1
-      const guiColor = gui.addColor(new ColorGUIHelper(mesh.material, 'color'), 'value').name(`Color ${fileCounter}`);
-      const guiSize = gui.add(new SizeGUIHelper(mesh.material, 'size'), 'value', 1, 5, 0.00001).name(`Size ${fileCounter}`);
-      fileCounter += 1
-
+      if(meshList.length===1){ 
+        const gui = new GUI()
+        var fileCounter = 1 
+        const guiColor = gui.addColor(new ColorGUIHelper(meshSelect.material, 'color'), 'value').name(`Color ${fileCounter}`);
+        const guiSize = gui.add(new SizeGUIHelper(meshSelect.material, 'size'), 'value', 1, 5, 0.00001).name(`Size ${fileCounter}`);
+        fileCounter += 1
+        this.setState({ gui: gui })
+      }
+     
+ 
       //Controlador para cada nuvem
       const tc = new TransformControls(this.state.camera, this.state.renderer.domElement)
       tc.attach(mesh)
@@ -394,10 +401,20 @@ export default class CloudView extends React.PureComponent<Props, State> {
         ControlObjetctList[i].setSize(0.3)
       }
       tc.setSize(1)
+
+      //Set o controlador GUI para a nuvem selecionada
+      const{gui} = this.state;
+      gui.destroy() 
+      const newGui = new GUI()
+      var fileCounter = 1
+      const guiColor = newGui.addColor(new ColorGUIHelper(meshSelect.material, 'color'), 'value').name(`Color ${fileCounter}`);
+      const guiSize = newGui.add(new SizeGUIHelper(meshSelect.material, 'size'), 'value', 1, 5, 0.00001).name(`Size ${fileCounter}`);
+      fileCounter += 1 
+      this.setState({ gui: newGui })
     });
 
     tc.addEventListener('mouseUp', () => { 
-      this.forceUpdate()   
+      this.forceUpdate()  
     }); 
     
 }
@@ -430,7 +447,7 @@ cloudMeshToCloudObj = (mesh) => {
 }
 
 deleteMeshScene = (mesh: Points) => {
-  const{scene, ControlObjetctSelect, meshList} = this.state 
+  const{scene, ControlObjetctSelect, meshList, gui} = this.state 
   //remove o controlador da nuvem
   ControlObjetctSelect.detach();
   scene.remove(ControlObjetctSelect)
@@ -442,6 +459,9 @@ deleteMeshScene = (mesh: Points) => {
 
           meshList.splice(i, 1); 
     } 
+  }
+  if(meshList.length===0){
+    gui.destroy()
   }
   scene.remove(mesh)  
 }
