@@ -3,13 +3,14 @@ $baseWidth: 66rem;
 .page {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 95vh;
   margin: 0 auto;
   min-height: 30rem;
   min-width: 30rem;
-  padding: 2rem;
-  width: 89vw;
+  padding: 1rem;
+  width: 84.8vw;
   margin-left: 0.2rem;
+  margin-top: 1rem;
 }
 
 .h1 {
@@ -58,7 +59,7 @@ $baseWidth: 66rem;
 
 .table {
   margin-top: 4.5rem;
-  width:10%;
+  width:100%;
   margin-bottom:1rem;
   color:#212529;
   border-collapse: collapse;
@@ -71,7 +72,7 @@ $baseWidth: 66rem;
  .container{
   margin-right: 0;
   margin-left: 0;
-  max-width: 900px;
+  //max-width: 900px;
  }
 
  .actionBtn:not(:last-child) {
@@ -84,9 +85,10 @@ $baseWidth: 66rem;
 }
 
 .scrollTable{
-  // display: block;
-  // overflow-y: auto;
-  //  max-height: 433px;
+  display: block;
+  overflow-y: scroll;
+  max-height: 347px;
+  width: 181px;
 }
 
 .informationsTransformControl {
