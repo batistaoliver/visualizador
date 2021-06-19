@@ -1,6 +1,6 @@
 import React, { RefObject, createRef } from 'react'
 import axios from 'axios'
-import { Points, Scene, MeshBasicMaterial, PerspectiveCamera, Renderer, GridHelper, Vector3} from 'three'
+import { Points, Scene, MeshBasicMaterial, PerspectiveCamera, Renderer, GridHelper, Vector3, ObjectLoader} from 'three'
 import { PCDLoader } from 'three/examples/jsm/loaders/PCDLoader' 
 import { Button } from 'react-bootstrap'
 import BasicScene from "components/BasicScene"
@@ -258,13 +258,13 @@ export default class CloudView extends React.PureComponent<Props, State> {
                 {this.renderTableHeader()}
               </thead>
               <tbody className={styles.scrollTable}>
-                {this.renderTableData()}
+                {this.renderTableData()} 
               </tbody>
-            </Table>
-            <Button className={styles.includeBtn} variant="primary" href="/clouds/insert" size="sm">
-                Insert New
-            </Button>
-            <Button className={styles.includeBtn} variant="primary" onClick={() => this.deleteMeshScene(meshSelect)} size="sm">
+              <tbody>
+              {this.btnNewCloudList()}
+              </tbody>
+            </Table> 
+            <Button variant="danger" onClick={() => this.deleteMeshScene(meshSelect)} size="sm">
                 Delete
             </Button>
               {this.renderDeleteModal()}
@@ -311,7 +311,7 @@ export default class CloudView extends React.PureComponent<Props, State> {
               <Button className={styles.actionBtn} href={`/clouds/edit/${id}`} variant="link" size="sm" title="Click to Edit">
                 <PencilIcon className={styles.action}/>
               </Button>
-              <Button className={styles.actionBtn} variant="link" onClick={() => this.showDeleteModal(id)} title="Click to Delete">
+              <Button className={styles.actionBtn} variant="link" onClick={() => this.showDeleteModal(id)} size="sm" title="Click to Delete">
                 <TrashIcon className={styles.action}/>
               </Button>
             </ButtonGroup>
@@ -320,6 +320,18 @@ export default class CloudView extends React.PureComponent<Props, State> {
       )
     })
   }
+  btnNewCloudList = () => { 
+      return (
+        <tr>
+          <td> 
+            <Button className={styles.includeBtn} variant="primary" href="/clouds/insert" size="sm">
+              Upload
+            </Button>
+          </td>
+        </tr>
+      ) 
+  }
+
   renderDeleteModal = () => (
     <Modal show={this.state.deleteID !== null}>
       <Modal.Header>
@@ -495,6 +507,10 @@ informationsTransformControl = () => {
     )  
 }
 
+
 }
+
+
+
 
 
