@@ -140,7 +140,6 @@ export default class CloudView extends React.PureComponent<Props, State> {
       }
     })
     this.setState({ isLoading: false })
-    //this.addCloudScena(mesh)
   }
 
   onLoad2 = (mesh: Points) => {
@@ -585,17 +584,32 @@ insertGridHelper = () => {
 informationsTransformControl = () => {  
     return (
       <div className={styles.informationsTransformControl}>
-        Eixos Objeto: "T" translate | "R" rotate | "S" scale
+        Eixos Objeto: "R" rotate | "S" scale | "T" translate 
       </div>
     )  
 }
 
-renderTablecloudsScene = () => {
+renderTablecloudsScene = () => { 
   return this.state.meshList.map(mesh => { 
-    const { id, name } = mesh
-    const {meshList} = this.state
+    const { id, name } = mesh 
     const meshIcon = mesh 
-    if(meshList.length>0){
+    if(mesh.visible==true){
+      return (
+        <tr key={id}>
+          <td > 
+            {name} 
+            <ButtonGroup claaria-label="Basic example"> 
+            <Button  variant="link" onClick={() => this.deleteMeshSceneIcons(meshIcon)} size="sm" title="Click to Delete">
+                  <TrashIcon className={styles.action}/>
+            </Button>
+            <Button  variant="link" onClick={() => this.visibleMesh(meshIcon)} size="sm" title="Click to invisible">
+                <EyeFill className={styles.action} />
+            </Button> 
+            </ButtonGroup>
+          </td>
+        </tr>
+      )
+    } else{
       return (
         <tr key={id}>
           <td > 
@@ -605,44 +619,44 @@ renderTablecloudsScene = () => {
                   <TrashIcon className={styles.action}/>
             </Button>
             <Button  variant="link" onClick={() => this.visibleMesh(meshIcon)} size="sm" title="Click to visible">
-                <EyeFill className={styles.action} />
+                <EyeSlashFill className={styles.action} />
             </Button> 
             </ButtonGroup>
           </td>
         </tr>
-      ) 
-    }
+      )
+    }  
   })
 }
 
+// Habilita e desabilita a visibilidade da nuvem e dos eixos
 visibleMesh = (mesh: Points) => {
   const {ControlObjetctList} = this.state
-  console.log(ControlObjetctList.length)
-  if (ControlObjetctList.length>0){ 
-  if (mesh.visible == true){
-    mesh.visible = false
-    for( var i = 0; i < ControlObjetctList.length; i++){ 
-      if(ControlObjetctList[i].object){
-        if ( ControlObjetctList[i].object.uuid === mesh.uuid) { 
-          ControlObjetctList[i].showX = false
-          ControlObjetctList[i].showY = false
-          ControlObjetctList[i].showZ = false 
+
+    if (mesh.visible == true){
+      mesh.visible = false
+      for( var i = 0; i < ControlObjetctList.length; i++){ 
+        if(ControlObjetctList[i].object){
+          if ( ControlObjetctList[i].object.uuid === mesh.uuid) { 
+            ControlObjetctList[i].showX = false
+            ControlObjetctList[i].showY = false
+            ControlObjetctList[i].showZ = false 
+          }
+        } 
+      }
+    }else{
+      mesh.visible = true
+      for( var i = 0; i < ControlObjetctList.length; i++){
+        if(ControlObjetctList[i].object){
+          if ( ControlObjetctList[i].object.uuid === mesh.uuid) { 
+            ControlObjetctList[i].showX = true
+            ControlObjetctList[i].showY = true
+            ControlObjetctList[i].showZ = true
+          }
         }
-      } 
-    }
-  }else{
-    mesh.visible = true
-    for( var i = 0; i < ControlObjetctList.length; i++){
-      if(ControlObjetctList[i].object){
-      if ( ControlObjetctList[i].object.uuid === mesh.uuid) { 
-        ControlObjetctList[i].showX = true
-        ControlObjetctList[i].showY = true
-        ControlObjetctList[i].showZ = true
-      }
       }
     }
-  }
-}
+    this.forceUpdate()
 } 
 
 save = () => {
