@@ -78,7 +78,7 @@ $baseWidth: 66rem;
 
  .actionBtn:not(:last-child) {
   margin-right: 3rem;
-  left: 3.5rem;
+  left: 6.4rem;
   height: 3px;
 }
 .action{
@@ -109,8 +109,35 @@ $baseWidth: 66rem;
 }
 
 
+.tableIcons {
+  margin-top: 4.5rem;
+  width:100%;
+  margin-bottom:1rem;
+  color:#212529;
+  border-collapse: collapse;
+ }
+
+ .tableIconsScroll {
+  margin-top: .7rem;
+  display: block;
+  overflow-y: auto;
+  max-height: 119px;
+  width: 300px;
+ }
 
 
+.tableIcons td, .tableIcons th {
+  padding: .25rem;
+  vertical-align: top;
+  border-top: 1px solid #dee2e61c;
+}
+ 
 
+div.tres {
+  width:5px;
+  height:5px;
+  border: 5px solid; /* As 4 bordas sólidas com 25px de espessura */
+  border-color: #f00 #0f0 #00f #fc0; /* cores: topo, direita, inferior, esquerda */
+  }
 
 

@@ -1,6 +1,6 @@
 import React, { RefObject, createRef } from 'react'
 import axios from 'axios'
-import { Points, Scene, MeshBasicMaterial, PerspectiveCamera, Renderer, GridHelper, Vector3, ObjectLoader} from 'three'
+import { Points, Scene, MeshBasicMaterial, PerspectiveCamera, Renderer, GridHelper, Vector3, BufferGeometry, Float32BufferAttribute, PointsMaterial, ObjectLoader, Object3D} from 'three'
 import { PCDLoader } from 'three/examples/jsm/loaders/PCDLoader' 
 import { Button } from 'react-bootstrap'
 import BasicScene from "components/BasicScene"
@@ -10,12 +10,14 @@ import Preview from 'components/Preview'
 import Table from 'react-bootstrap/Table'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
-import Container from 'react-bootstrap/Container'
+import Container from 'react-bootstrap/Container' 
 import { apiURL } from 'utils'
 import styles from './index.scss'
 import {
   Trash as TrashIcon,
   Pencil as PencilIcon,
+  EyeSlashFill as EyeSlashFill,
+  EyeFill as EyeFill,
 } from 'react-bootstrap-icons'
 import ButtonGroup from 'react-bootstrap/ButtonGroup'
 import Modal from 'react-bootstrap/Modal' 
@@ -45,6 +47,7 @@ type State = {
   ControlObjetctSelect: TransformControls
   ControlObjetctList?: TransformControls[]
   gui: GUI;
+  vect3DList: Vector3[]
 
 }
 
@@ -67,7 +70,8 @@ export default class CloudView extends React.PureComponent<Props, State> {
     meshList:[],
     ControlObjetctSelect: null,
     ControlObjetctList:[],
-    gui: null
+    gui: null,
+    vect3DList: []
   }
   loader: PCDLoader = new PCDLoader()
   mount: HTMLDivElement
@@ -266,7 +270,13 @@ export default class CloudView extends React.PureComponent<Props, State> {
             </Table> 
             <Button variant="danger" onClick={() => this.deleteMeshScene(meshSelect)} size="sm">
                 Delete
-            </Button>
+            </Button><br></br>
+            <Button  variant="primary" className="mt-2" onClick={() => this.save()} size="sm">
+                Save Cloud
+            </Button><br></br>
+            <Button className="mt-2" variant="primary" onClick={() => this.show()} size="sm">
+                show CLoud save
+            </Button> 
               {this.renderDeleteModal()}
           </Col>
           <Col xs={10}>
@@ -276,6 +286,8 @@ export default class CloudView extends React.PureComponent<Props, State> {
                 {/* <Button className="float-right btn-sm" children="Voltar" href="/clouds" /> */}
               </header>
               {this.renderSceneContainer()}
+              <Row>
+              <Col xs={3}>
               <div id='footer' className={styles.footer}>
                 {meshSelect && (
                 <SceneControls
@@ -285,6 +297,17 @@ export default class CloudView extends React.PureComponent<Props, State> {
                 />
                 )}
               </div>
+              </Col>
+              <Col xs={9}>
+              <Table className={styles.tableIconsScroll}>
+              <tbody className={styles.tableIcons}>  
+                {/* <tr> */}
+                {this.renderTablecloudsScene()} 
+                {/* </tr> */}
+              </tbody>
+              </Table>
+              </Col>
+              </Row> 
             </div>
           </Col>
         </Row>
@@ -307,12 +330,12 @@ export default class CloudView extends React.PureComponent<Props, State> {
             <Button className={styles.cloudTdLink} onClick={() => this.insertNewCloud(url)} variant="link" size="sm">
               <Preview url={apiURL(url)}/>
             </Button>
-            <ButtonGroup claaria-label="Basic example">
-              <Button className={styles.actionBtn} href={`/clouds/edit/${id}`} variant="link" size="sm" title="Click to Edit">
-                <PencilIcon className={styles.action}/>
-              </Button>
+            <ButtonGroup claaria-label="Basic example"> 
               <Button className={styles.actionBtn} variant="link" onClick={() => this.showDeleteModal(id)} size="sm" title="Click to Delete">
                 <TrashIcon className={styles.action}/>
+              </Button>
+              <Button className={styles.actionBtn} href={`/clouds/edit/${id}`} variant="link" size="sm" title="Click to Edit">
+                <PencilIcon className={styles.action}/>
               </Button>
             </ButtonGroup>
           </td>
@@ -349,7 +372,6 @@ export default class CloudView extends React.PureComponent<Props, State> {
     </Modal>
   )
 
-
   insertNewCloud = (url: string) => {
       this.loader.load(apiURL(url), this.onLoad2, this.onLoadProgress, this.onLoadError)
     }
@@ -357,7 +379,7 @@ export default class CloudView extends React.PureComponent<Props, State> {
   addCloudScena = (mesh: Points) => {
 
       //Adiciona a nuvem no centro da cena
-      const { scene, meshList, camera, ControlObjetctSelect, ControlObjetctList, meshSelect} = this.state
+      const { scene, meshList, camera, meshCopy, ControlObjetctList, meshSelect} = this.state
       mesh.geometry.center()
       scene.add(mesh)
   
@@ -422,11 +444,12 @@ export default class CloudView extends React.PureComponent<Props, State> {
       const guiColor = newGui.addColor(new ColorGUIHelper(meshSelect.material, 'color'), 'value').name(`Color ${fileCounter}`);
       const guiSize = newGui.add(new SizeGUIHelper(meshSelect.material, 'size'), 'value', 1, 5, 0.00001).name(`Size ${fileCounter}`);
       fileCounter += 1 
-      this.setState({ gui: newGui })
+      this.setState({ gui: newGui }) 
+      
     });
 
-    tc.addEventListener('mouseUp', () => { 
-      this.forceUpdate()  
+    tc.addEventListener('mouseUp', () => {  
+      this.forceUpdate()    
     }); 
     
 }
@@ -443,8 +466,7 @@ cloudMeshToCloudObj = (mesh) => {
   };
 
   if (mesh) {
-    const coords = mesh.geometry.attributes.position.array;
-
+    const coords = mesh.geometry.attributes.position.array; 
     for (let i = 0; i < coords.length; i += 3) {
       cloudObj.numpts += 1;
       cloudObj.points.push({
@@ -457,6 +479,39 @@ cloudMeshToCloudObj = (mesh) => {
 
   return cloudObj; 
 }
+
+/**
+ * Cria um THREE.Mesh a partir de um objeto nuvem
+ * @param cloudObj Objeto nuvem
+ * @param color Cor aplicada no material (ex: #ff0000)
+ * @param pointSize Tamanho do ponto (ex: #ff0000)
+ * @returns
+ */
+ cloudObjToCloudMesh = (cloudObj, color, pointSize) => { 
+  const geometry = new BufferGeometry();
+  const pointArr = cloudObj.points.reduce((res, e, i) => {
+    res[i * 3] = e.x;
+    res[i * 3 + 1] = e.y;
+    res[i * 3 + 2] = e.z;
+    return res;
+  }, new Array(cloudObj.points.length * 3));
+
+  geometry.setAttribute(
+    "position",
+    new Float32BufferAttribute(pointArr, 3)
+  );
+  geometry.computeBoundingSphere();
+
+  const material = new PointsMaterial({
+    size: pointSize,
+  });
+  material.color.set(color);
+
+  const mesh = new Points(geometry, material);
+  //mesh.length = cloudObj.points.length;
+  return mesh;
+}
+
 
 deleteMeshScene = (mesh: Points) => {
   const{scene, ControlObjetctSelect, meshList, gui} = this.state 
@@ -476,7 +531,35 @@ deleteMeshScene = (mesh: Points) => {
     gui.destroy()
   }
   scene.remove(mesh)  
+  this.forceUpdate()
 }
+
+deleteMeshSceneIcons = (mesh: Points) => {
+  const{scene, meshList,ControlObjetctList, gui} = this.state 
+  //remove o controlador da nuvem 
+  for( var i = 0; i < ControlObjetctList.length; i++){
+     if(ControlObjetctList[i].object){
+      if ( ControlObjetctList[i].object.uuid === mesh.uuid) { 
+        ControlObjetctList[i].detach();
+        scene.remove(ControlObjetctList[i]) 
+      }
+     }  
+  } 
+  //Remove a nuvem da lista de nuvens
+  for( var i = 0; i < meshList.length; i++){ 
+    
+    if ( meshList[i].uuid === mesh.uuid) { 
+
+          meshList.splice(i, 1); 
+    } 
+  }
+  if(meshList.length===0){
+    gui.destroy()
+  }
+  scene.remove(mesh)   
+
+  this.forceUpdate()}
+
 
 inclinacaoPerspectiveCamera = () => {
   const {camera} = this.state
@@ -507,7 +590,93 @@ informationsTransformControl = () => {
     )  
 }
 
+renderTablecloudsScene = () => {
+  return this.state.meshList.map(mesh => { 
+    const { id, name } = mesh
+    const {meshList} = this.state
+    const meshIcon = mesh 
+    if(meshList.length>0){
+      return (
+        <tr key={id}>
+          <td > 
+            {name} 
+            <ButtonGroup claaria-label="Basic example"> 
+            <Button  variant="link" onClick={() => this.deleteMeshSceneIcons(meshIcon)} size="sm" title="Click to Delete">
+                  <TrashIcon className={styles.action}/>
+            </Button>
+            <Button  variant="link" onClick={() => this.visibleMesh(meshIcon)} size="sm" title="Click to visible">
+                <EyeFill className={styles.action} />
+            </Button> 
+            </ButtonGroup>
+          </td>
+        </tr>
+      ) 
+    }
+  })
+}
 
+visibleMesh = (mesh: Points) => {
+  const {ControlObjetctList} = this.state
+  console.log(ControlObjetctList.length)
+  if (ControlObjetctList.length>0){ 
+  if (mesh.visible == true){
+    mesh.visible = false
+    for( var i = 0; i < ControlObjetctList.length; i++){ 
+      if(ControlObjetctList[i].object){
+        if ( ControlObjetctList[i].object.uuid === mesh.uuid) { 
+          ControlObjetctList[i].showX = false
+          ControlObjetctList[i].showY = false
+          ControlObjetctList[i].showZ = false 
+        }
+      } 
+    }
+  }else{
+    mesh.visible = true
+    for( var i = 0; i < ControlObjetctList.length; i++){
+      if(ControlObjetctList[i].object){
+      if ( ControlObjetctList[i].object.uuid === mesh.uuid) { 
+        ControlObjetctList[i].showX = true
+        ControlObjetctList[i].showY = true
+        ControlObjetctList[i].showZ = true
+      }
+      }
+    }
+  }
+}
+} 
+
+save = () => {
+  var {meshSelect, vect3DList} = this.state
+  var objeto = this.cloudMeshToCloudObj(meshSelect); 
+      var listvet3 :  Vector3[];
+      for (let i = 0; i < objeto.numpts; i += 1) {
+        var vetor3 = new Vector3(objeto.points[i].x,objeto.points[i].y,objeto.points[i].z) 
+        vetor3.applyMatrix4(meshSelect.matrix)
+        vect3DList.push(vetor3) 
+      } 
+      const cloudObj = {
+        numpts: vect3DList.length,
+        points: [] = vect3DList,
+      };  
+
+      var cloudObjToJson = JSON.stringify(cloudObj );
+
+      localStorage.setItem("pointsMeshSave",cloudObjToJson)
+ 
+}
+
+show = () => {
+
+  var {scene} = this.state
+  var retrievedObject = localStorage.getItem('pointsMeshSave');
+   
+  var stringToJson= JSON.parse(retrievedObject);
+   
+    var meshSave =  this.cloudObjToCloudMesh(stringToJson, '#1c30ea', 0.001)
+    console.log(meshSave)
+    scene.add(meshSave) 
+
+}
 }
 
 
