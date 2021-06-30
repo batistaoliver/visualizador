@@ -673,9 +673,23 @@ save = () => {
         points: [] = vect3DList,
       };  
 
-      var cloudObjToJson = JSON.stringify(cloudObj );
+      // var cloudObjToJson = JSON.stringify(cloudObj );
 
-      localStorage.setItem("pointsMeshSave",cloudObjToJson)
+      // localStorage.setItem("pointsMeshSave",cloudObjToJson)
+      var cloudObjToJson = '{"json":' + JSON.stringify(cloudObj ) + '}'; 
+
+      axios({
+        method: 'post',
+        data: cloudObjToJson,
+        headers: {'Content-Type': 'application/json'},
+        url: apiURL(`/api/point-clouds/override-from-json/${meshSelect.id}`),
+      })
+      .then(response => {
+        console.log(response)
+      })
+      .catch(response => {
+        console.log(response) 
+      })
  
 }
 
