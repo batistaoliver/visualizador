@@ -47,7 +47,8 @@ type State = {
   ControlObjetctSelect: TransformControls
   ControlObjetctList?: TransformControls[]
   gui: GUI;
-  vect3DList: Vector3[]
+  vect3DList: Vector3[],
+  IdSelectCloud: Nullable<string>
 
 }
 
@@ -57,7 +58,7 @@ type Props = {
 
 
 
-const DEFAULT_SCALE = 4
+const DEFAULT_SCALE = 1
 
 export default class CloudView extends React.PureComponent<Props, State> {
   state: State = {
@@ -71,7 +72,8 @@ export default class CloudView extends React.PureComponent<Props, State> {
     ControlObjetctSelect: null,
     ControlObjetctList:[],
     gui: null,
-    vect3DList: []
+    vect3DList: [],
+    IdSelectCloud: null
   }
   loader: PCDLoader = new PCDLoader()
   mount: HTMLDivElement
@@ -184,7 +186,6 @@ export default class CloudView extends React.PureComponent<Props, State> {
 
   onControlChange = (controls: Pick<State, 'showAxes' | 'mouseInteraction' | 'showOriginalCopy'>) => {
     const { meshCopy, scene, showOriginalCopy } = this.state
-    //console.log(meshCopy)
     if (controls.showOriginalCopy && showOriginalCopy !== controls.showOriginalCopy) {
       scene.add(meshCopy)
     } else if (showOriginalCopy !== controls.showOriginalCopy) {
@@ -223,7 +224,6 @@ export default class CloudView extends React.PureComponent<Props, State> {
     } = this.state
     const { mouseInteraction, showAxes } = this.state
     const shouldRenderScene = mesh && this.sceneContainer.current && !isLoading
-    //console.log(mesh)
     return (
       <div className={styles.sceneContainer} ref={this.sceneContainer}>
         {isLoading && <LoadingSpinner label="Loading..." />}
@@ -250,7 +250,6 @@ export default class CloudView extends React.PureComponent<Props, State> {
 
   render() {
     const { meshSelect} = this.state
-    //console.log(meshSelect)
     return (
 
       <Container className={styles.container}>
@@ -271,18 +270,17 @@ export default class CloudView extends React.PureComponent<Props, State> {
                 Delete
             </Button><br></br>
             <Button  variant="primary" className="mt-2" onClick={() => this.save()} size="sm">
-                Save Cloud
+                Save
             </Button><br></br>
-            <Button className="mt-2" variant="primary" onClick={() => this.show()} size="sm">
+            {/* <Button className="mt-2" variant="primary" onClick={() => this.show()} size="sm">
                 show CLoud save
-            </Button> 
+            </Button>  */}
               {this.renderDeleteModal()}
           </Col>
           <Col xs={10}>
             <div className={styles.page}>
               <header>
                 <h1 className={styles.h1}>View Point Cloud</h1>
-                {/* <Button className="float-right btn-sm" children="Voltar" href="/clouds" /> */}
               </header>
               {this.renderSceneContainer()}
               <Row>
@@ -326,7 +324,7 @@ export default class CloudView extends React.PureComponent<Props, State> {
       return (
         <tr key={id}>
           <td>
-            <Button className={styles.cloudTdLink} onClick={() => this.insertNewCloud(url)} variant="link" size="sm">
+            <Button className={styles.cloudTdLink} onClick={() => this.insertNewCloud(url,id)} variant="link" size="sm">
               <Preview url={apiURL(url)}/>
             </Button>
             <ButtonGroup claaria-label="Basic example"> 
@@ -371,14 +369,16 @@ export default class CloudView extends React.PureComponent<Props, State> {
     </Modal>
   )
 
-  insertNewCloud = (url: string) => {
+  insertNewCloud = (url: string, Id: string) => {
       this.loader.load(apiURL(url), this.onLoad2, this.onLoadProgress, this.onLoadError)
+      this.setState({ IdSelectCloud: Id })
     }
 
   addCloudScena = (mesh: Points) => {
 
       //Adiciona a nuvem no centro da cena
-      const { scene, meshList, camera, meshCopy, ControlObjetctList, meshSelect} = this.state
+      const { scene, meshList, camera, meshCopy, ControlObjetctList, meshSelect,clouds} = this.state
+      
       mesh.geometry.center()
       scene.add(mesh)
   
@@ -404,8 +404,6 @@ export default class CloudView extends React.PureComponent<Props, State> {
       tc.setSize(0.5) 
       this.setState({ ControlObjetctSelect: tc  }); 
       ControlObjetctList.push(tc);
-
-      var stringData = JSON.stringify(mesh.toJSON() );
 
       //configuração dos modos do controlador
       window.addEventListener('keydown', function(event) {
@@ -660,7 +658,7 @@ visibleMesh = (mesh: Points) => {
 } 
 
 save = () => {
-  var {meshSelect, vect3DList} = this.state
+  var {meshSelect, vect3DList,IdSelectCloud} = this.state
   var objeto = this.cloudMeshToCloudObj(meshSelect); 
       var listvet3 :  Vector3[];
       for (let i = 0; i < objeto.numpts; i += 1) {
@@ -672,17 +670,13 @@ save = () => {
         numpts: vect3DList.length,
         points: [] = vect3DList,
       };  
-
-      // var cloudObjToJson = JSON.stringify(cloudObj );
-
-      // localStorage.setItem("pointsMeshSave",cloudObjToJson)
       var cloudObjToJson = '{"json":' + JSON.stringify(cloudObj ) + '}'; 
 
       axios({
         method: 'post',
         data: cloudObjToJson,
         headers: {'Content-Type': 'application/json'},
-        url: apiURL(`/api/point-clouds/override-from-json/${meshSelect.id}`),
+        url: apiURL(`/api/point-clouds/override-from-json/${IdSelectCloud}`),
       })
       .then(response => {
         console.log(response)
@@ -693,18 +687,6 @@ save = () => {
  
 }
 
-show = () => {
-
-  var {scene} = this.state
-  var retrievedObject = localStorage.getItem('pointsMeshSave');
-   
-  var stringToJson= JSON.parse(retrievedObject);
-   
-    var meshSave =  this.cloudObjToCloudMesh(stringToJson, '#1c30ea', 0.001)
-    console.log(meshSave)
-    scene.add(meshSave) 
-
-}
 }
 
 
