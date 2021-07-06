@@ -188,6 +188,25 @@ export default class CloudView extends React.PureComponent<Props, State> {
     const { meshCopy, scene, showOriginalCopy } = this.state
     if (controls.showOriginalCopy && showOriginalCopy !== controls.showOriginalCopy) {
       scene.add(meshCopy)
+      
+      var source = '"source":{"numpts": 4,"points": [{ "x": 1, "y": 1, "z": 1 },{ "x": 1, "y": 1, "z": 1 },{ "x": 1, "y": 1, "z": 1 },{ "x": 1, "y": 1, "z": 1}]}'
+      var target = '"target":{"numpts": 4,"points": [{ "x": 1.5, "y": 1.5, "z": 1.5 },{ "x": 1.5, "y": 1.5, "z": 1.5 },{ "x": 1.5, "y": 1.5, "z": 1.5 },{ "x": 1.5, "y": 1.5, "z": 1.5 }]}'
+
+      var jsonTeste2ICP = '{' + source + ',' + target + ',' + '"th":2,' + '"k":2,' + '"maxDist":2,' + '"closestType":"bf"}'
+      
+      axios({
+        method: 'post',
+        data: jsonTeste2ICP,
+        headers: {'Content-Type': 'application/json, Access-Control-Allow-Origin'},
+        url: apiURL(`/api/point-clouds/registration-icp`),
+      })
+      .then(response => {
+        console.log(response)
+      })
+      .catch(response => {
+        console.log(response) 
+      })
+
     } else if (showOriginalCopy !== controls.showOriginalCopy) {
       scene.remove(meshCopy)
     }
