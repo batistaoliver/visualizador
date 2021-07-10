@@ -189,15 +189,34 @@ export default class CloudView extends React.PureComponent<Props, State> {
     if (controls.showOriginalCopy && showOriginalCopy !== controls.showOriginalCopy) {
       scene.add(meshCopy)
       
-      var source = '"source":{"numpts": 4,"points": [{ "x": 1, "y": 1, "z": 1 },{ "x": 1, "y": 1, "z": 1 },{ "x": 1, "y": 1, "z": 1 },{ "x": 1, "y": 1, "z": 1}]}'
-      var target = '"target":{"numpts": 4,"points": [{ "x": 1.5, "y": 1.5, "z": 1.5 },{ "x": 1.5, "y": 1.5, "z": 1.5 },{ "x": 1.5, "y": 1.5, "z": 1.5 },{ "x": 1.5, "y": 1.5, "z": 1.5 }]}'
-
-      var jsonTeste2ICP = '{' + source + ',' + target + ',' + '"th":2,' + '"k":2,' + '"maxDist":2,' + '"closestType":"bf"}'
+      const data = {
+        "source": {
+          "numpts": 4,
+          "points": [
+            { "x": 1, "y": 1, "z": 1 },
+            { "x": 1, "y": 1, "z": 1 },
+            { "x": 1, "y": 1, "z": 1 },
+            { "x": 1, "y": 1, "z": 1 }
+          ]
+        },
+        "target": {
+          "numpts": 4,
+          "points": [
+            { "x": 1.5, "y": 1.5, "z": 1.5 },
+            { "x": 1.5, "y": 1.5, "z": 1.5 },
+            { "x": 1.5, "y": 1.5, "z": 1.5 },
+            { "x": 1.5, "y": 1.5, "z": 1.5 }
+          ]
+        },
+        "th": 2,
+        "k": 2,
+        "maxDist": 2,
+        "closestType": "bf"
+      }
       
       axios({
         method: 'post',
-        data: jsonTeste2ICP,
-        headers: {'Content-Type': 'application/json, Access-Control-Allow-Origin'},
+        data,
         url: apiURL(`/api/point-clouds/registration-icp`),
       })
       .then(response => {
@@ -689,12 +708,10 @@ save = () => {
         numpts: vect3DList.length,
         points: [] = vect3DList,
       };  
-      var cloudObjToJson = '{"json":' + JSON.stringify(cloudObj ) + '}'; 
 
       axios({
         method: 'post',
-        data: cloudObjToJson,
-        headers: {'Content-Type': 'application/json'},
+        data: { json: cloudObj },
         url: apiURL(`/api/point-clouds/override-from-json/${IdSelectCloud}`),
       })
       .then(response => {

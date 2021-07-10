@@ -1,7 +1,7 @@
 import { Points, Vector3 } from 'three'
 
-//const API_URL = process.env.API_URL || 'http://localhost:8880'
-const API_URL = process.env.API_URL || 'http://152.228.129.55:8880'
+const API_URL = process.env.API_URL || 'http://localhost:8880'
+
 export const apiURL = (append: string = '') => {
   return `${trimChar(API_URL, '/')}/${trimChar(append, '/')}`
 }
