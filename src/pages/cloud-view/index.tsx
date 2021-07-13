@@ -185,10 +185,56 @@ export default class CloudView extends React.PureComponent<Props, State> {
   }
 
   onControlChange = (controls: Pick<State, 'showAxes' | 'mouseInteraction' | 'showOriginalCopy'>) => {
-    const { meshCopy, scene, showOriginalCopy } = this.state
+    const { meshCopy, scene, showOriginalCopy,meshList, ControlObjetctList } = this.state
+
+    //Se o checkbox "show copy original" foi clicado
     if (controls.showOriginalCopy && showOriginalCopy !== controls.showOriginalCopy) {
       scene.add(meshCopy)
+      meshList.push(meshCopy)
+
+      //Controlador
+      const tc = new TransformControls(this.state.camera, this.state.renderer.domElement)
+      tc.attach(meshCopy)
+      scene.add(tc) 
+      tc.setSize(0.5) 
+      this.setState({ ControlObjetctSelect: tc  }); 
+      ControlObjetctList.push(tc);
+
+      //configuração dos modos do controlador
+      window.addEventListener('keydown', function(event) {
+        switch (event.key) {
+            case "t":
+                tc.setMode("translate")
+                break
+            case "r":
+                tc.setMode("rotate")
+                break
+            case "s":
+                tc.setMode("scale")
+                break
+            case "+, =, num+":
+                tc.setSize( tc.size + 0.1 );
+                break
+        }
+    }) 
+
+    //eventos do controlador
+    tc.addEventListener('mouseDown', () => {
+      //Salva a seleção atual em estado
+      this.setState({ meshSelect: meshCopy, ControlObjetctSelect: tc  }); 
+       
+      //Destaca o objeto selecionado
+      for( var i = 0; i < meshList.length; i++){
+        ControlObjetctList[i].setSize(0.3)
+      }
+      tc.setSize(1)
       
+    });
+
+    tc.addEventListener('mouseUp', () => {  
+      this.forceUpdate()    
+    });
+
       const data = {
         "source": {
           "numpts": 4,
@@ -228,6 +274,25 @@ export default class CloudView extends React.PureComponent<Props, State> {
 
     } else if (showOriginalCopy !== controls.showOriginalCopy) {
       scene.remove(meshCopy)
+
+      //remove o controlador da nuvem 
+      for( var i = 0; i < ControlObjetctList.length; i++){
+        if(ControlObjetctList[i].object){
+         if ( ControlObjetctList[i].object.uuid === meshCopy.uuid) { 
+          ControlObjetctList[i].detach();
+          scene.remove(ControlObjetctList[i]) 
+          }
+        }  
+      } 
+      //Remove a nuvem da lista de nuvens
+      for( var i = 0; i < meshList.length; i++){ 
+   
+        if ( meshList[i].uuid === meshCopy.uuid) { 
+
+          meshList.splice(i, 1); 
+       } 
+      }
+      
     }
 
     this.setState({ ...controls })
