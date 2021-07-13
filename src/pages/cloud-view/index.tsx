@@ -131,7 +131,7 @@ export default class CloudView extends React.PureComponent<Props, State> {
     this.setState(
       {
       mesh,
-      meshCopy: mesh.clone(),
+      //meshCopy: mesh.clone(),
     }
     , () => {
       try {
@@ -189,6 +189,9 @@ export default class CloudView extends React.PureComponent<Props, State> {
 
     //Se o checkbox "show copy original" foi clicado
     if (controls.showOriginalCopy && showOriginalCopy !== controls.showOriginalCopy) {
+      if(meshCopy.name.includes(".pcd")){
+        meshCopy.name = meshCopy.name.replace(".pcd"," - Copy")
+      }
       scene.add(meshCopy)
       meshList.push(meshCopy)
 
@@ -482,6 +485,7 @@ export default class CloudView extends React.PureComponent<Props, State> {
       //Adiciona a nuvem no centro da cena
       const { scene, meshList, camera, meshCopy, ControlObjetctList, meshSelect,clouds} = this.state
       
+      mesh.name = mesh.name.replace(".pcd"," (") + mesh.id + ")"
       mesh.geometry.center()
       scene.add(mesh)
   
@@ -545,6 +549,7 @@ export default class CloudView extends React.PureComponent<Props, State> {
       const guiSize = newGui.add(new SizeGUIHelper(meshSelect.material, 'size'), 'value', 1, 5, 0.00001).name(`Size ${fileCounter}`);
       fileCounter += 1 
       this.setState({ gui: newGui }) 
+      
       
     });
 
