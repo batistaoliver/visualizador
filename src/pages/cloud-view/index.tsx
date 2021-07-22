@@ -1,16 +1,18 @@
 import React, { RefObject, createRef } from 'react'
 import axios from 'axios'
 import { Points, Scene, MeshBasicMaterial, PerspectiveCamera, Renderer, GridHelper, Vector3, BufferGeometry, Float32BufferAttribute, PointsMaterial, ObjectLoader, Object3D} from 'three'
-import { PCDLoader } from 'three/examples/jsm/loaders/PCDLoader' 
+import { PCDLoader } from 'three/examples/jsm/loaders/PCDLoader'
 import { Button } from 'react-bootstrap'
 import BasicScene from "components/BasicScene"
 import LoadingSpinner from 'components/LoadingSpinner'
 import SceneControls from 'pages/cloud-view/SceneControls'
 import Preview from 'components/Preview'
 import Table from 'react-bootstrap/Table'
+import Form from 'react-bootstrap/Form'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
-import Container from 'react-bootstrap/Container' 
+import Container from 'react-bootstrap/Container'
+import Alert from 'react-bootstrap/Alert'
 import { apiURL } from 'utils'
 import styles from './index.scss'
 import {
@@ -18,12 +20,16 @@ import {
   Pencil as PencilIcon,
   EyeSlashFill as EyeSlashFill,
   EyeFill as EyeFill,
+  PlayBtnFill as PlayBtnFill,
 } from 'react-bootstrap-icons'
 import ButtonGroup from 'react-bootstrap/ButtonGroup'
-import Modal from 'react-bootstrap/Modal' 
+import Modal from 'react-bootstrap/Modal'
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls'
 // @ts-ignore
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
+//import {Popover} from 'react-bootstrap/Popover'
+
+import {OverlayTrigger, Popover } from 'react-bootstrap'
 
 import {
   ColorGUIHelper,
@@ -36,6 +42,8 @@ type State = {
   meshCopy?: Points
   meshList?: Points[]
   meshSelect?: Points
+  meshSourceICP?: Points
+  meshTargetICP?: Points
   scene?: Scene
   mouseInteraction: boolean
   showAxes: boolean
@@ -48,8 +56,20 @@ type State = {
   ControlObjetctList?: TransformControls[]
   gui: GUI;
   vect3DList: Vector3[],
-  IdSelectCloud: Nullable<string>
-
+  vect3DListSource: Vector3[],
+  vect3DListTarget: Vector3[],
+  vect3DTest: Vector3[],
+  IdSelectCloud: Nullable<string>,
+  idSource: string,
+  idTarget: string,
+  thICP: number,
+  kICP: number,
+  maxDistICP: number,
+  closestTypeICP: string,
+  activePopover?: 'ICP' ,
+  overlayTriggerShow: boolean,
+  overlayTriggerResultICPShow: boolean,
+  Array: number[]
 }
 
 type Props = {
@@ -58,7 +78,7 @@ type Props = {
 
 
 
-const DEFAULT_SCALE = 1
+const DEFAULT_SCALE = 4
 
 export default class CloudView extends React.PureComponent<Props, State> {
   state: State = {
@@ -73,11 +93,44 @@ export default class CloudView extends React.PureComponent<Props, State> {
     ControlObjetctList:[],
     gui: null,
     vect3DList: [],
-    IdSelectCloud: null
+    vect3DListSource: [],
+    vect3DListTarget: [],
+    vect3DTest: [],
+    IdSelectCloud: null,
+    idSource: null,
+    idTarget: null,
+    thICP: 0.0000001,
+    kICP: 30,
+    maxDistICP: 1000,
+    closestTypeICP: 'bf',
+    overlayTriggerShow: false,
+    overlayTriggerResultICPShow: false,
+    Array:[]
+
+    
   }
   loader: PCDLoader = new PCDLoader()
   mount: HTMLDivElement
   sceneContainer: RefObject<HTMLDivElement> = createRef()
+
+  hidePopover = () => this.setState({ overlayTriggerShow: false })
+  showPopover = () => this.setState({ overlayTriggerShow: true })
+
+  hidePopoverResultICP = () => this.setState({ overlayTriggerResultICPShow: false })
+  showPopoverResultICP = () => this.setState({ overlayTriggerResultICPShow: true })
+
+  handleChangethICP = (event: any) => {
+    this.setState({ thICP: event.target.valueAsNumber })
+  }
+  handleChangekICP = (event: any) => {
+    this.setState({ kICP: event.target.valueAsNumber })
+  }
+  handleChangeMaxDistICP = (event: any) => {
+    this.setState({ maxDistICP: event.target.valueAsNumber })
+  }
+  handleChangeClosestTypeICP = (event: any) => {
+    this.setState({ closestTypeICP: event.target.value })
+  }
 
   componentDidMount() {
     this.setState({ isLoading: true })
@@ -173,11 +226,11 @@ export default class CloudView extends React.PureComponent<Props, State> {
   }
 
   sceneGetter = (scene: Scene) => {
-    this.setState({ scene }) 
+    this.setState({ scene })
   }
 
   cameraGetter = (camera: PerspectiveCamera) => {
-    this.setState({ camera })  
+    this.setState({ camera })
   }
 
   rendererGetter = (renderer: Renderer) => {
@@ -198,9 +251,9 @@ export default class CloudView extends React.PureComponent<Props, State> {
       //Controlador
       const tc = new TransformControls(this.state.camera, this.state.renderer.domElement)
       tc.attach(meshCopy)
-      scene.add(tc) 
-      tc.setSize(0.5) 
-      this.setState({ ControlObjetctSelect: tc  }); 
+      scene.add(tc)
+      tc.setSize(0.5)
+      this.setState({ ControlObjetctSelect: tc  });
       ControlObjetctList.push(tc);
 
       //configuração dos modos do controlador
@@ -219,83 +272,46 @@ export default class CloudView extends React.PureComponent<Props, State> {
                 tc.setSize( tc.size + 0.1 );
                 break
         }
-    }) 
+    })
 
     //eventos do controlador
     tc.addEventListener('mouseDown', () => {
       //Salva a seleção atual em estado
-      this.setState({ meshSelect: meshCopy, ControlObjetctSelect: tc  }); 
-       
+      this.setState({ meshSelect: meshCopy, ControlObjetctSelect: tc  });
+
       //Destaca o objeto selecionado
       for( var i = 0; i < meshList.length; i++){
         ControlObjetctList[i].setSize(0.3)
       }
       tc.setSize(1)
-      
+
     });
 
-    tc.addEventListener('mouseUp', () => {  
-      this.forceUpdate()    
+    tc.addEventListener('mouseUp', () => {
+      this.forceUpdate()
     });
-
-      const data = {
-        "source": {
-          "numpts": 4,
-          "points": [
-            { "x": 1, "y": 1, "z": 1 },
-            { "x": 1, "y": 1, "z": 1 },
-            { "x": 1, "y": 1, "z": 1 },
-            { "x": 1, "y": 1, "z": 1 }
-          ]
-        },
-        "target": {
-          "numpts": 4,
-          "points": [
-            { "x": 1.5, "y": 1.5, "z": 1.5 },
-            { "x": 1.5, "y": 1.5, "z": 1.5 },
-            { "x": 1.5, "y": 1.5, "z": 1.5 },
-            { "x": 1.5, "y": 1.5, "z": 1.5 }
-          ]
-        },
-        "th": 2,
-        "k": 2,
-        "maxDist": 2,
-        "closestType": "bf"
-      }
-      
-      axios({
-        method: 'post',
-        data,
-        url: apiURL(`/api/point-clouds/registration-icp`),
-      })
-      .then(response => {
-        console.log(response)
-      })
-      .catch(response => {
-        console.log(response) 
-      })
 
     } else if (showOriginalCopy !== controls.showOriginalCopy) {
       scene.remove(meshCopy)
 
-      //remove o controlador da nuvem 
+      //remove o controlador da nuvem
       for( var i = 0; i < ControlObjetctList.length; i++){
         if(ControlObjetctList[i].object){
-         if ( ControlObjetctList[i].object.uuid === meshCopy.uuid) { 
+         if ( ControlObjetctList[i].object.uuid === meshCopy.uuid) {
           ControlObjetctList[i].detach();
-          scene.remove(ControlObjetctList[i]) 
+          scene.remove(ControlObjetctList[i])
           }
-        }  
-      } 
-      //Remove a nuvem da lista de nuvens
-      for( var i = 0; i < meshList.length; i++){ 
-   
-        if ( meshList[i].uuid === meshCopy.uuid) { 
-
-          meshList.splice(i, 1); 
-       } 
+        }
       }
-      
+      //Remove a nuvem da lista de nuvens
+      for( var i = 0; i < meshList.length; i++){
+
+        if ( meshList[i].uuid === meshCopy.uuid) {
+
+          meshList.splice(i, 1);
+       }
+      }
+
     }
 
     this.setState({ ...controls })
@@ -326,7 +342,7 @@ export default class CloudView extends React.PureComponent<Props, State> {
   renderSceneContainer = () => {
     const {
       isLoading,
-      mesh,
+      mesh
     } = this.state
     const { mouseInteraction, showAxes } = this.state
     const shouldRenderScene = mesh && this.sceneContainer.current && !isLoading
@@ -344,9 +360,10 @@ export default class CloudView extends React.PureComponent<Props, State> {
               getRenderer={this.rendererGetter}
             />
             {this.renderChangesViewer()}
+            
             {this.insertGridHelper()}
             {this.inclinacaoPerspectiveCamera()}
-            {this.informationsTransformControl()}
+            {this.informationsTransformControl()} 
           </>
         )}
       </div>
@@ -366,21 +383,18 @@ export default class CloudView extends React.PureComponent<Props, State> {
                 {this.renderTableHeader()}
               </thead>
               <tbody className={styles.scrollTable}>
-                {this.renderTableData()} 
+                {this.renderTableData()}
               </tbody>
               <tbody>
               {this.btnNewCloudList()}
               </tbody>
-            </Table> 
-            <Button variant="danger" onClick={() => this.deleteMeshScene(meshSelect)} size="sm">
+            </Table>
+            <Button variant="danger" onClick={() => this.deleteMeshScene(meshSelect)} size="sm" >
                 Delete
             </Button><br></br>
             <Button  variant="primary" className="mt-2" onClick={() => this.save()} size="sm">
                 Save
             </Button><br></br>
-            {/* <Button className="mt-2" variant="primary" onClick={() => this.show()} size="sm">
-                show CLoud save
-            </Button>  */}
               {this.renderDeleteModal()}
           </Col>
           <Col xs={10}>
@@ -401,16 +415,24 @@ export default class CloudView extends React.PureComponent<Props, State> {
                 )}
               </div>
               </Col>
-              <Col xs={9}>
-              <Table className={styles.tableIconsScroll}>
-              <tbody className={styles.tableIcons}>  
-                {/* <tr> */}
-                {this.renderTablecloudsScene()} 
-                {/* </tr> */}
-              </tbody>
-              </Table>
+              <Col xs={8}> 
+                <Table className={styles.tableIconsScroll}>
+                  <thead className={styles.tableIcons}>
+                  <tr>
+                    <td><h6><b>Cloud List</b></h6></td>
+                    <td ><h6><b>Source</b></h6></td>
+                    <td ><h6><b>Target</b></h6></td>
+                  </tr>
+                  </thead> 
+                  <tbody className={styles.tableIcons}>
+                    {this.renderTablecloudsScene()} 
+                  </tbody>
+                </Table>
               </Col>
-              </Row> 
+              <Col xs={1} className="mt-2"> 
+              {this.renderOverlayTrigger()}
+              </Col>
+              </Row>
             </div>
           </Col>
         </Row>
@@ -433,7 +455,7 @@ export default class CloudView extends React.PureComponent<Props, State> {
             <Button className={styles.cloudTdLink} onClick={() => this.insertNewCloud(url,id)} variant="link" size="sm">
               <Preview url={apiURL(url)}/>
             </Button>
-            <ButtonGroup claaria-label="Basic example"> 
+            <ButtonGroup claaria-label="Basic example">
               <Button className={styles.actionBtn} variant="link" onClick={() => this.showDeleteModal(id)} size="sm" title="Click to Delete">
                 <TrashIcon className={styles.action}/>
               </Button>
@@ -446,16 +468,16 @@ export default class CloudView extends React.PureComponent<Props, State> {
       )
     })
   }
-  btnNewCloudList = () => { 
+  btnNewCloudList = () => {
       return (
         <tr>
-          <td> 
+          <td>
             <Button className={styles.includeBtn} variant="primary" href="/clouds/insert" size="sm">
               Upload
             </Button>
           </td>
         </tr>
-      ) 
+      )
   }
 
   renderDeleteModal = () => (
@@ -484,32 +506,32 @@ export default class CloudView extends React.PureComponent<Props, State> {
 
       //Adiciona a nuvem no centro da cena
       const { scene, meshList, camera, meshCopy, ControlObjetctList, meshSelect,clouds} = this.state
-      
+
       mesh.name = mesh.name.replace(".pcd"," (") + mesh.id + ")"
       mesh.geometry.center()
       scene.add(mesh)
-  
+
       //Preenchendo a lista de nuvens de pontos
       meshList.push(mesh)
- 
+
 
       //Controles de cor e de tamanho da nuvem
-      if(meshList.length===1){ 
+      if(meshList.length===1){
         const gui = new GUI()
-        var fileCounter = 1 
+        var fileCounter = 1
         const guiColor = gui.addColor(new ColorGUIHelper(meshSelect.material, 'color'), 'value').name(`Color ${fileCounter}`);
         const guiSize = gui.add(new SizeGUIHelper(meshSelect.material, 'size'), 'value', 1, 5, 0.00001).name(`Size ${fileCounter}`);
         fileCounter += 1
         this.setState({ gui: gui })
       }
-     
- 
+
+
       //Controlador para cada nuvem
       const tc = new TransformControls(this.state.camera, this.state.renderer.domElement)
       tc.attach(mesh)
-      scene.add(tc) 
-      tc.setSize(0.5) 
-      this.setState({ ControlObjetctSelect: tc  }); 
+      scene.add(tc)
+      tc.setSize(0.5)
+      this.setState({ ControlObjetctSelect: tc  });
       ControlObjetctList.push(tc);
 
       //configuração dos modos do controlador
@@ -528,12 +550,12 @@ export default class CloudView extends React.PureComponent<Props, State> {
                 tc.setSize( tc.size + 0.1 );
                 break
         }
-    }) 
+    })
 
     tc.addEventListener('mouseDown', () => {
       //Salva a seleção atual em estado
-      this.setState({ meshSelect: mesh, ControlObjetctSelect: tc  }); 
-       
+      this.setState({ meshSelect: mesh, ControlObjetctSelect: tc  });
+
       //Destaca o objeto selecionado
       for( var i = 0; i < meshList.length; i++){
         ControlObjetctList[i].setSize(0.3)
@@ -542,21 +564,21 @@ export default class CloudView extends React.PureComponent<Props, State> {
 
       //Set o controlador GUI para a nuvem selecionada
       const{gui} = this.state;
-      gui.destroy() 
+      gui.destroy()
       const newGui = new GUI()
       var fileCounter = 1
       const guiColor = newGui.addColor(new ColorGUIHelper(meshSelect.material, 'color'), 'value').name(`Color ${fileCounter}`);
       const guiSize = newGui.add(new SizeGUIHelper(meshSelect.material, 'size'), 'value', 1, 5, 0.00001).name(`Size ${fileCounter}`);
-      fileCounter += 1 
-      this.setState({ gui: newGui }) 
-      
-      
+      fileCounter += 1
+      this.setState({ gui: newGui })
+
+
     });
 
-    tc.addEventListener('mouseUp', () => {  
-      this.forceUpdate()    
-    }); 
-    
+    tc.addEventListener('mouseUp', () => {
+      this.forceUpdate() 
+    });
+
 }
 
 /**
@@ -564,14 +586,14 @@ export default class CloudView extends React.PureComponent<Props, State> {
  * @param mesh Mesh da nuvem
  * @returns Objeto nuvem
  */
-cloudMeshToCloudObj = (mesh) => { 
+cloudMeshToCloudObj = (mesh) => {
   const cloudObj = {
     numpts: 0,
-    points: [], 
+    points: [],
   };
 
   if (mesh) {
-    const coords = mesh.geometry.attributes.position.array; 
+    const coords = mesh.geometry.attributes.position.array;
     for (let i = 0; i < coords.length; i += 3) {
       cloudObj.numpts += 1;
       cloudObj.points.push({
@@ -582,7 +604,7 @@ cloudMeshToCloudObj = (mesh) => {
     }
   }
 
-  return cloudObj; 
+  return cloudObj;
 }
 
 /**
@@ -592,7 +614,7 @@ cloudMeshToCloudObj = (mesh) => {
  * @param pointSize Tamanho do ponto (ex: #ff0000)
  * @returns
  */
- cloudObjToCloudMesh = (cloudObj, color, pointSize) => { 
+ cloudObjToCloudMesh = (cloudObj, color, pointSize) => {
   const geometry = new BufferGeometry();
   const pointArr = cloudObj.points.reduce((res, e, i) => {
     res[i * 3] = e.x;
@@ -619,49 +641,49 @@ cloudMeshToCloudObj = (mesh) => {
 
 
 deleteMeshScene = (mesh: Points) => {
-  const{scene, ControlObjetctSelect, meshList, gui} = this.state 
+  const{scene, ControlObjetctSelect, meshList, gui} = this.state
   //remove o controlador da nuvem
   ControlObjetctSelect.detach();
   scene.remove(ControlObjetctSelect)
 
   //Remove a nuvem da lista de nuvens
-  for( var i = 0; i < meshList.length; i++){ 
-    
-    if ( meshList[i].uuid === mesh.uuid) { 
+  for( var i = 0; i < meshList.length; i++){
 
-          meshList.splice(i, 1); 
-    } 
+    if ( meshList[i].uuid === mesh.uuid) {
+
+          meshList.splice(i, 1);
+    }
   }
   if(meshList.length===0){
     gui.destroy()
   }
-  scene.remove(mesh)  
+  scene.remove(mesh)
   this.forceUpdate()
 }
 
 deleteMeshSceneIcons = (mesh: Points) => {
-  const{scene, meshList,ControlObjetctList, gui} = this.state 
-  //remove o controlador da nuvem 
+  const{scene, meshList,ControlObjetctList, gui} = this.state
+  //remove o controlador da nuvem
   for( var i = 0; i < ControlObjetctList.length; i++){
      if(ControlObjetctList[i].object){
-      if ( ControlObjetctList[i].object.uuid === mesh.uuid) { 
+      if ( ControlObjetctList[i].object.uuid === mesh.uuid) {
         ControlObjetctList[i].detach();
-        scene.remove(ControlObjetctList[i]) 
+        scene.remove(ControlObjetctList[i])
       }
-     }  
-  } 
+     }
+  }
   //Remove a nuvem da lista de nuvens
-  for( var i = 0; i < meshList.length; i++){ 
-    
-    if ( meshList[i].uuid === mesh.uuid) { 
+  for( var i = 0; i < meshList.length; i++){
 
-          meshList.splice(i, 1); 
-    } 
+    if ( meshList[i].uuid === mesh.uuid) {
+
+          meshList.splice(i, 1);
+    }
   }
   if(meshList.length===0){
     gui.destroy()
   }
-  scene.remove(mesh)   
+  scene.remove(mesh)
 
   this.forceUpdate()}
 
@@ -672,39 +694,40 @@ inclinacaoPerspectiveCamera = () => {
   if(camera){
     camera.position.set( 0,1,2.5);
     camera.lookAt(new Vector3(0,0,0));
-  } 
+  }
 }
 
 insertGridHelper = () => {
-  const {scene} = this.state 
-  
+  const {scene} = this.state
+
   if(scene){
     const size = 8;
     const divisions = 12;
     const gridHelper = new GridHelper( size, divisions, 0x888888, 0x444444);
     scene.add( gridHelper );
   }
-  
+
 }
 
-informationsTransformControl = () => {  
+informationsTransformControl = () => {
     return (
       <div className={styles.informationsTransformControl}>
-        Eixos Objeto: "R" rotate | "S" scale | "T" translate 
+        Eixos Objeto: "R" rotate | "S" scale | "T" translate
       </div>
-    )  
+    )
 }
 
-renderTablecloudsScene = () => { 
-  return this.state.meshList.map(mesh => { 
-    const { id, name } = mesh 
-    const meshIcon = mesh 
+renderTablecloudsScene = () => {
+  
+  return this.state.meshList.map(mesh => {
+    const { id, name } = mesh
+    const meshIcon = mesh
     if(mesh.visible==true){
       return (
-        <tr key={id}>
-          <td > 
-            {name} 
-            <ButtonGroup claaria-label="Basic example"> 
+        <tr key={id}> 
+          <td >
+            {name}
+            <ButtonGroup claaria-label="Basic example">
             <Button  variant="link" onClick={() => this.deleteMeshSceneIcons(meshIcon)} size="sm" title="Click to Delete">
                   <TrashIcon className={styles.action}/>
             </Button>
@@ -713,26 +736,47 @@ renderTablecloudsScene = () => {
             </Button> 
             </ButtonGroup>
           </td>
+          <td >
+          <Form.Check  
+            onChange={() => this.setState({ idSource: id.toString()})}  
+            />
+          </td>
+          <td >
+          <Form.Check 
+            onChange={() => this.setState({ idTarget: id.toString()})} 
+            />
+          </td>
         </tr>
       )
     } else{
       return (
         <tr key={id}>
-          <td > 
-            {name} 
-            <ButtonGroup claaria-label="Basic example"> 
+          <td >
+            {name}
+            <ButtonGroup claaria-label="Basic example">
             <Button  variant="link" onClick={() => this.deleteMeshSceneIcons(meshIcon)} size="sm" title="Click to Delete">
                   <TrashIcon className={styles.action}/>
             </Button>
             <Button  variant="link" onClick={() => this.visibleMesh(meshIcon)} size="sm" title="Click to visible">
                 <EyeSlashFill className={styles.action} />
-            </Button> 
+            </Button>
             </ButtonGroup>
+            </td>
+          <td >
+          <Form.Check
+            onChange={() => this.setState({ idSource: id.toString() })}  
+            />
+          </td>
+          <td >
+          <Form.Check
+            onChange={() => this.setState({ idTarget: id.toString() })} 
+              />
           </td>
         </tr>
       )
-    }  
+    }
   })
+  
 }
 
 // Habilita e desabilita a visibilidade da nuvem e dos eixos
@@ -741,20 +785,20 @@ visibleMesh = (mesh: Points) => {
 
     if (mesh.visible == true){
       mesh.visible = false
-      for( var i = 0; i < ControlObjetctList.length; i++){ 
+      for( var i = 0; i < ControlObjetctList.length; i++){
         if(ControlObjetctList[i].object){
-          if ( ControlObjetctList[i].object.uuid === mesh.uuid) { 
+          if ( ControlObjetctList[i].object.uuid === mesh.uuid) {
             ControlObjetctList[i].showX = false
             ControlObjetctList[i].showY = false
-            ControlObjetctList[i].showZ = false 
+            ControlObjetctList[i].showZ = false
           }
-        } 
+        }
       }
     }else{
       mesh.visible = true
       for( var i = 0; i < ControlObjetctList.length; i++){
         if(ControlObjetctList[i].object){
-          if ( ControlObjetctList[i].object.uuid === mesh.uuid) { 
+          if ( ControlObjetctList[i].object.uuid === mesh.uuid) {
             ControlObjetctList[i].showX = true
             ControlObjetctList[i].showY = true
             ControlObjetctList[i].showZ = true
@@ -763,21 +807,21 @@ visibleMesh = (mesh: Points) => {
       }
     }
     this.forceUpdate()
-} 
+}
 
 save = () => {
   var {meshSelect, vect3DList,IdSelectCloud} = this.state
-  var objeto = this.cloudMeshToCloudObj(meshSelect); 
+  var objeto = this.cloudMeshToCloudObj(meshSelect);
       var listvet3 :  Vector3[];
       for (let i = 0; i < objeto.numpts; i += 1) {
-        var vetor3 = new Vector3(objeto.points[i].x,objeto.points[i].y,objeto.points[i].z) 
+        var vetor3 = new Vector3(objeto.points[i].x,objeto.points[i].y,objeto.points[i].z)
         vetor3.applyMatrix4(meshSelect.matrix)
-        vect3DList.push(vetor3) 
-      } 
+        vect3DList.push(vetor3)
+      }
       const cloudObj = {
         numpts: vect3DList.length,
         points: [] = vect3DList,
-      };  
+      };
 
       axios({
         method: 'post',
@@ -788,11 +832,293 @@ save = () => {
         console.log(response)
       })
       .catch(response => {
-        console.log(response) 
+        console.log(response)
       })
- 
+
 }
 
+
+  runICP = () => {
+            const { thICP, kICP, maxDistICP,closestTypeICP,idSource,idTarget,meshList,scene,ControlObjetctList,Array } = this.state
+           
+            if(idSource===null ||idTarget ===null){
+              alert("Selecione uma nuvenm source e uma nuvem target") 
+            }
+            else if(idSource===idTarget){  
+              alert("Selecione Nuvens distintas para source e Target") 
+            }else{
+            if(meshList.length>0){
+              for( var i = 0; i < meshList.length; i++){
+                if(meshList[i].id.toString()===idSource){
+                  var meshSource = meshList[i]; 
+                  this.setState({ meshSourceICP: meshSource }) 
+                }
+              }
+            }
+
+            if(meshList.length>0){
+              for( var i = 0; i < meshList.length; i++){
+                if(meshList[i].id.toString()===idTarget){
+                  var meshTarget = meshList[i];
+                  //console.log(meshTarget)
+                  this.setState({ meshTargetICP: meshTarget }) 
+                }
+              }
+            }
+           const {vect3DListSource,vect3DListTarget} = this.state
+
+           var ObjMeshSource = this.cloudMeshToCloudObj(meshSource); 
+           for (let i = 0; i < ObjMeshSource.numpts; i += 1) {
+            var vetor3 = new Vector3(ObjMeshSource.points[i].x,ObjMeshSource.points[i].y,ObjMeshSource.points[i].z) 
+            vetor3.applyMatrix4(meshSource.matrix)
+            vect3DListSource.push(vetor3) 
+          } 
+          const cloudObjSource = {
+            numpts: vect3DListSource.length,
+            points: [] = vect3DListSource,
+          }; 
+
+          var ObjMeshTarget = this.cloudMeshToCloudObj(meshTarget);
+           
+          for (let i = 0; i < ObjMeshTarget.numpts; i += 1) {
+            var vetor3 = new Vector3(ObjMeshTarget.points[i].x,ObjMeshTarget.points[i].y,ObjMeshTarget.points[i].z) 
+            vetor3.applyMatrix4(meshTarget.matrix)
+            vect3DListTarget.push(vetor3) 
+          } 
+          const cloudObjTarget = {
+            numpts: vect3DListTarget.length,
+            points: [] = vect3DListTarget,
+          }; 
+ 
+          const data = {
+            "source": cloudObjSource,
+            "target": cloudObjTarget,
+            "th": thICP,
+            "k": kICP,
+            "maxDist": maxDistICP,
+            "closestType": closestTypeICP
+          } 
+          axios({
+            method: 'post',
+            data,
+            url: apiURL(`/api/point-clouds/registration-icp`),
+          })
+          .then(response => {
+            console.log(response.data)
+            var nuvemIcp = this.cloudObjToCloudMesh(response.data.algnCloud, '#1c30ea', 0.001)
+            nuvemIcp.name = "ICP result (" + meshSource.name + " and " + meshTarget.name +")"
+            scene.add(nuvemIcp)
+            meshList.push(nuvemIcp)
+
+            //preenche a matriz de transformação
+            Array.push(parseFloat(response.data.tm[0][0].re.toFixed(5)))
+            Array.push(parseFloat(response.data.tm[1][0].re.toFixed(5)))
+            Array.push(parseFloat(response.data.tm[2][0].re.toFixed(5)))
+            Array.push(parseFloat(response.data.tm[3][0].re.toFixed(5)))
+
+            Array.push(parseFloat(response.data.tm[0][1].re.toFixed(5)))
+            Array.push(parseFloat(response.data.tm[1][1].re.toFixed(5)))
+            Array.push(parseFloat(response.data.tm[2][1].re.toFixed(5)))
+            Array.push(parseFloat(response.data.tm[3][1].re.toFixed(5)))
+
+            Array.push(parseFloat(response.data.tm[0][2].re.toFixed(5)))
+            Array.push(parseFloat(response.data.tm[1][2].re.toFixed(5)))
+            Array.push(parseFloat(response.data.tm[2][2].re.toFixed(5)))
+            Array.push(parseFloat(response.data.tm[3][2].re.toFixed(5)))
+
+            Array.push(parseFloat(response.data.tm[0][3].re.toFixed(5)))
+            Array.push(parseFloat(response.data.tm[1][3].re.toFixed(5)))
+            Array.push(parseFloat(response.data.tm[2][3].re.toFixed(5)))
+            Array.push(parseFloat(response.data.tm[3][3].re.toFixed(5)))
+
+            this.setState({Array:Array}) 
+
+               //Controlador
+            const tc = new TransformControls(this.state.camera, this.state.renderer.domElement)
+            tc.attach(nuvemIcp)
+            scene.add(tc)
+            tc.setSize(0.5)
+            this.setState({ ControlObjetctSelect: tc  });
+            ControlObjetctList.push(tc);
+
+            //configuração dos modos do controlador
+            window.addEventListener('keydown', function(event) {
+              switch (event.key) {
+                case "t":
+                  tc.setMode("translate")
+                  break
+                case "r":
+                  tc.setMode("rotate")
+                  break
+                case "s":
+                  tc.setMode("scale")
+                  break
+                case "+, =, num+":
+                  tc.setSize( tc.size + 0.1 );
+                  break
+              }
+            })
+
+            //eventos do controlador
+            tc.addEventListener('mouseDown', () => {
+              //Salva a seleção atual em estado
+              this.setState({ meshSelect: nuvemIcp, ControlObjetctSelect: tc  });
+
+              //Destaca o objeto selecionado
+              for( var i = 0; i < meshList.length; i++){
+                ControlObjetctList[i].setSize(0.3)
+              }
+              tc.setSize(1)
+
+              //Set o controlador GUI para a nuvem selecionada
+              const{gui} = this.state;
+              gui.destroy()
+              const newGui = new GUI()
+              var fileCounter = 1
+              const guiColor = newGui.addColor(new ColorGUIHelper(nuvemIcp.material, 'color'), 'value').name(`Color ${fileCounter}`);
+              const guiSize = newGui.add(new SizeGUIHelper(nuvemIcp.material, 'size'), 'value', 1, 5, 0.00001).name(`Size ${fileCounter}`);
+              fileCounter += 1
+              this.setState({ gui: newGui })
+            });
+
+            tc.addEventListener('mouseUp', () => {
+              this.forceUpdate()
+            });
+ 
+          })
+          .catch(response => {
+            console.log(response) 
+          })
+
+        }}
+
+ 
+  renderPopover = () => { 
+    return (
+      <Popover id="icpPopover">
+        <Popover.Title as="h3">Parâmetros ICP</Popover.Title>
+        <Popover.Content>
+          <Form.Group>
+            <Form.Label>Critério de parada (Th)</Form.Label>
+            <Form.Control type="number" defaultValue={this.state.thICP} onChange={this.handleChangethICP} step="0.0000001"/>
+            <Form.Label>Quantidade máxima de iterações (K)</Form.Label>
+            <Form.Control type="number" defaultValue={this.state.kICP} onChange={this.handleChangekICP}/>
+            <Form.Label>Distância máxima entre pontos(max_dist)</Form.Label>
+            <Form.Control type="number"  defaultValue={this.state.maxDistICP} onChange={this.handleChangeMaxDistICP}/>
+            <Form.Label>Algoritmo Utilizado (Closest_Type)</Form.Label>
+            <Form.Control  placeholder="Enter email" as="select" defaultValue={this.state.closestTypeICP} onChange={this.handleChangeClosestTypeICP}>
+              <option>bf</option>
+              <option>tree</option>
+            </Form.Control>
+          </Form.Group>
+          <Button  variant="primary" onClick={() => this.runICP()} className={styles.button} size="sm" title="Click to Run ICP">
+            Run ICP
+          </Button>
+          <Button
+            children="Close"
+            className={styles.button}
+            onClick={() => this.hidePopover()}
+            size="sm"
+            variant="secondary"
+          />
+          {this.renderOverlayTriggerResultICP()} 
+        </Popover.Content>
+      </Popover>
+    )
+  }
+
+  renderOverlayTrigger() {
+    const {overlayTriggerShow} = this.state
+    return (
+      <OverlayTrigger trigger="click" show={overlayTriggerShow}  placement="top" overlay={this.renderPopover()}>
+        <Button onClick={() => this.showPopover()}
+          children="ICP"
+          size="sm"
+          variant="secondary"
+        />
+      </OverlayTrigger>
+    )
+  }
+
+  renderPopoverResultICP = () => { 
+    const {Array} = this.state
+    var calculo = (Array[0] + Array[5] +  Array[10] - 1) / 2 
+    console.log(calculo)
+    var rad = Math.acos(calculo)
+    var angulo =  ((180 * rad) / Math.PI).toFixed(5) + '°'
+    return (
+      <Popover id="resultICPPopover" className={styles.popover}>
+        <Popover.Title as="h3">Resultados ICP</Popover.Title>
+        <Popover.Content>
+          <Form.Group>
+          <Form.Label><b>Matriz de transformação:</b></Form.Label>
+            <Row className={styles.colMatrixTop}>
+              <Col xs={3} >{Array[0]} 
+              </Col>
+              <Col xs={3} className={styles.colMatrixLeft}>{Array[4]}
+              </Col>
+              <Col xs={3} className={styles.colMatrixLeft}>{Array[8]}
+              </Col>
+              <Col xs={3} className={styles.colMatrixLeft}>{Array[12]}
+              </Col>
+            </Row>
+            <Row className={styles.colMatrixTop}>
+              <Col xs={3}>{Array[1]}
+              </Col>
+              <Col xs={3} className={styles.colMatrixLeft}>{Array[5]}
+              </Col>
+              <Col xs={3} className={styles.colMatrixLeft}>{Array[9]}
+              </Col>
+              <Col xs={3} className={styles.colMatrixLeft}>{Array[13]}
+              </Col>
+            </Row>
+            <Row className={styles.colMatrixTop}>
+              <Col xs={3}>{Array[2]}
+              </Col>
+              <Col xs={3} className={styles.colMatrixLeft}>{Array[6]}
+              </Col>
+              <Col xs={3} className={styles.colMatrixLeft}>{Array[10]}
+              </Col>
+              <Col xs={3} className={styles.colMatrixLeft}>{Array[14]}
+              </Col>
+            </Row>
+            <Row className={styles.colMatrixBottom}>
+              <Col xs={3}>{Array[3]}
+              </Col>
+              <Col xs={3} className={styles.colMatrixLeft}>{Array[7]}
+              </Col>
+              <Col xs={3} className={styles.colMatrixLeft}>{Array[11]}
+              </Col>
+              <Col xs={3} className={styles.colMatrixLeft}>{Array[15]}
+              </Col>
+            </Row>
+            <Form.Label className="mt-2"><b>Ângulo:</b> {angulo}</Form.Label>
+          </Form.Group> 
+          <Button
+            children="Close"
+            className={styles.button}
+            onClick={() => this.hidePopoverResultICP()}
+            size="sm"
+            variant="secondary"
+          />
+        </Popover.Content>
+      </Popover>
+    )
+  }
+
+  renderOverlayTriggerResultICP() {
+    const {overlayTriggerResultICPShow} = this.state
+    return (
+      <OverlayTrigger trigger="click" show={overlayTriggerResultICPShow}  placement="top" overlay={this.renderPopoverResultICP()}>
+        <Button onClick={() => this.showPopoverResultICP()}
+          children="Results"
+          size="sm"
+          variant="secondary"
+        />
+      </OverlayTrigger>
+    )
+  }
+    
 }
 
 

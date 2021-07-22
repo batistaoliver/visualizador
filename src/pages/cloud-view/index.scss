@@ -35,7 +35,7 @@ $baseWidth: 66rem;
 
   & input {
     margin-top: 0.375rem;
-    margin-left: -1.125rem;
+    //margin-left: -1.125rem;
   }
 
   & > :not(:last-child) {
@@ -115,21 +115,23 @@ $baseWidth: 66rem;
   margin-bottom:1rem;
   color:#212529;
   border-collapse: collapse;
+  
  }
 
  .tableIconsScroll {
   margin-top: .7rem;
-  display: block;
+  display: block; 
   overflow-y: auto;
   max-height: 120px;
-  width: 300px;
+  //width: 265px;
  }
 
 
 .tableIcons td, .tableIcons th {
-  padding: .25rem;
-  vertical-align: top;
-  border-top: 1px solid #dee2e61c;
+  padding: .18rem;
+  vertical-align: middle;
+  border-top: 1px solid #dee2e600;
+  border-bottom: 1px solid #dee2e6da;
 }
  
 
@@ -141,3 +143,31 @@ div.tres {
   }
 
 
+  .formSelect{
+    border-radius: .0rem;
+  }
+
+  .form-check-input {
+    position: absolute;
+    margin-top: .3rem;
+    margin-left: -0.25rem;
+}
+
+.popover {
+  max-width: 400px;
+}
+
+.colMatrixLeft { 
+  border-left: 2px solid #dee2e6da; 
+}
+
+.colMatrixTop {  
+  border-top: 2px solid #dee2e64d;
+  // border-left: 2px solid #dee2e6da; 
+}
+
+.colMatrixBottom {  
+  border-bottom: 2px solid #dee2e64d;
+  border-top: 2px solid #dee2e64d;
+  // border-left: 2px solid #dee2e6da; 
+}
