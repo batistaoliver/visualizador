@@ -12,7 +12,6 @@ import Form from 'react-bootstrap/Form'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Container from 'react-bootstrap/Container'
-import Alert from 'react-bootstrap/Alert'
 import { apiURL } from 'utils'
 import styles from './index.scss'
 import {
@@ -67,6 +66,7 @@ type State = {
   maxDistICP: number,
   closestTypeICP: string,
   activePopover?: 'ICP' ,
+  rmse: number,
   overlayTriggerShow: boolean,
   overlayTriggerResultICPShow: boolean,
   Array: number[]
@@ -100,9 +100,10 @@ export default class CloudView extends React.PureComponent<Props, State> {
     idSource: null,
     idTarget: null,
     thICP: 0.0000001,
-    kICP: 30,
+    kICP: 50,
     maxDistICP: 1000,
     closestTypeICP: 'bf',
+    rmse: null,
     overlayTriggerShow: false,
     overlayTriggerResultICPShow: false,
     Array:[]
@@ -184,18 +185,18 @@ export default class CloudView extends React.PureComponent<Props, State> {
     this.setState(
       {
       mesh,
-      //meshCopy: mesh.clone(),
     }
     , () => {
       try {
-        this.state.mesh.material = new MeshBasicMaterial({color: 0xF76E6E, wireframe: true})
-        this.state.meshCopy.material = new MeshBasicMaterial({color: 0xAAAAAA, wireframe: true})
+        //this.state.mesh.material = new MeshBasicMaterial({color: 0xF76E6E, wireframe: true})
+        //this.state.meshCopy.material = new MeshBasicMaterial({color: 0xAAAAAA, wireframe: true})
       } catch(e) {
         console.warn(e)
       }
     })
-    this.setState({ isLoading: false })
-  }
+    this.setState({ isLoading: false }) 
+
+  }  
 
   onLoad2 = (mesh: Points) => {
     this.setState({ meshSelect: mesh })
@@ -204,7 +205,7 @@ export default class CloudView extends React.PureComponent<Props, State> {
       mesh,
       meshCopy: mesh.clone(),
     }, () => {
-      try {
+      try { 
         //this.state.mesh.material = new MeshBasicMaterial({color: 0xF76E6E, wireframe: true})
         //this.state.meshCopy.material = new MeshBasicMaterial({color: 0xAAAAAA, wireframe: true})
       } catch(e) {
@@ -212,7 +213,7 @@ export default class CloudView extends React.PureComponent<Props, State> {
       }
     })
     this.setState({ isLoading: false })
-    this.addCloudScena(mesh)
+    this.addCloudScena(mesh) 
   }
 
   onLoadProgress = (xhr: ProgressEvent) => {
@@ -243,7 +244,13 @@ export default class CloudView extends React.PureComponent<Props, State> {
     //Se o checkbox "show copy original" foi clicado
     if (controls.showOriginalCopy && showOriginalCopy !== controls.showOriginalCopy) {
       if(meshCopy.name.includes(".pcd")){
-        meshCopy.name = meshCopy.name.replace(".pcd"," - Copy")
+        meshCopy.name = meshCopy.name.replace(".pcd"," - Copy") 
+        //atribui a cor verde para a nuvem cópia
+        const material = new PointsMaterial({
+          size: 0.001,
+        });
+        material.color.set('#0cf423');
+        meshCopy.material= material
       }
       scene.add(meshCopy)
       meshList.push(meshCopy)
@@ -284,6 +291,17 @@ export default class CloudView extends React.PureComponent<Props, State> {
         ControlObjetctList[i].setSize(0.3)
       }
       tc.setSize(1)
+      const {meshSelect} = this.state
+       //Set o controlador GUI para a nuvem selecionada
+       const{gui} = this.state;
+       gui.destroy()
+       const newGui = new GUI()
+       var fileCounter = 1
+       console.log(meshSelect)
+       const guiColor = newGui.addColor(new ColorGUIHelper(meshSelect.material, 'color'), 'value').name(`Color ${fileCounter}`);
+       const guiSize = newGui.add(new SizeGUIHelper(meshSelect.material, 'size'), 'value', 1, 5, 0.00001).name(`Size ${fileCounter}`);
+       fileCounter += 1
+       this.setState({ gui: newGui })
 
     });
 
@@ -502,10 +520,10 @@ export default class CloudView extends React.PureComponent<Props, State> {
       this.setState({ IdSelectCloud: Id })
     }
 
+  //Adiciona a nuvem no centro da cena
   addCloudScena = (mesh: Points) => {
-
-      //Adiciona a nuvem no centro da cena
-      const { scene, meshList, camera, meshCopy, ControlObjetctList, meshSelect,clouds} = this.state
+ 
+      const { scene, meshList, ControlObjetctList, meshSelect} = this.state
 
       mesh.name = mesh.name.replace(".pcd"," (") + mesh.id + ")"
       mesh.geometry.center()
@@ -513,7 +531,6 @@ export default class CloudView extends React.PureComponent<Props, State> {
 
       //Preenchendo a lista de nuvens de pontos
       meshList.push(mesh)
-
 
       //Controles de cor e de tamanho da nuvem
       if(meshList.length===1){
@@ -524,7 +541,6 @@ export default class CloudView extends React.PureComponent<Props, State> {
         fileCounter += 1
         this.setState({ gui: gui })
       }
-
 
       //Controlador para cada nuvem
       const tc = new TransformControls(this.state.camera, this.state.renderer.domElement)
@@ -603,7 +619,6 @@ cloudMeshToCloudObj = (mesh) => {
       });
     }
   }
-
   return cloudObj;
 }
 
@@ -865,7 +880,7 @@ save = () => {
                 }
               }
             }
-           const {vect3DListSource,vect3DListTarget} = this.state
+           const {vect3DListSource,vect3DListTarget, rmse} = this.state
 
            var ObjMeshSource = this.cloudMeshToCloudObj(meshSource); 
            for (let i = 0; i < ObjMeshSource.numpts; i += 1) {
@@ -932,6 +947,27 @@ save = () => {
             Array.push(parseFloat(response.data.tm[3][3].re.toFixed(5)))
 
             this.setState({Array:Array}) 
+
+            //Calcula o RMSE
+            const data = {
+              "source": response.data.algnCloud,
+              "target": cloudObjTarget,
+              "maxDist": maxDistICP,
+              "closestType": closestTypeICP
+            } 
+            
+            axios({
+              method: 'post',
+              data,
+              url: apiURL(`/api/point-clouds/cloud-rmse`),
+            })
+            .then(response => {
+              this.setState({rmse:response.data.rsme}) 
+            })
+            .catch(response => {
+              console.log(response) 
+            })
+
 
                //Controlador
             const tc = new TransformControls(this.state.camera, this.state.renderer.domElement)
@@ -1041,11 +1077,14 @@ save = () => {
   }
 
   renderPopoverResultICP = () => { 
-    const {Array} = this.state
+    var {Array,rmse} = this.state
     var calculo = (Array[0] + Array[5] +  Array[10] - 1) / 2 
     console.log(calculo)
     var rad = Math.acos(calculo)
     var angulo =  ((180 * rad) / Math.PI).toFixed(5) + '°'
+    if(rmse){
+      rmse = parseFloat(rmse.toFixed(5))
+    }
     return (
       <Popover id="resultICPPopover" className={styles.popover}>
         <Popover.Title as="h3">Resultados ICP</Popover.Title>
@@ -1092,7 +1131,8 @@ save = () => {
               <Col xs={3} className={styles.colMatrixLeft}>{Array[15]}
               </Col>
             </Row>
-            <Form.Label className="mt-2"><b>Ângulo:</b> {angulo}</Form.Label>
+            <Form.Label className="mt-2"><b>Ângulo:</b> {angulo}</Form.Label><br/>
+            <Form.Label className="mt-2"><b>Rmse:</b> {rmse}</Form.Label>
           </Form.Group> 
           <Button
             children="Close"
